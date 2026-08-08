@@ -1,0 +1,55 @@
+# Dependencies
+/node_modules
+/vendor
+
+# Environment & secrets
+.env
+.env.backup
+.env.production
+.env.*.local
+/auth.json
+
+# Build & runtime
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/database/*.sqlite
+/database/*.sqlite-journal
+
+# Logs & caches
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.phpunit.result.cache
+.phpunit.cache
+.phpactor.json
+
+# Homestead / Vagrant
+Homestead.json
+Homestead.yaml
+
+# OS / editors
+.DS_Store
+Thumbs.db
+/.fleet
+/.idea
+/.nova
+/.vscode
+/.zed
+*.swp
+*.swo
+
+# Laravel Boost (regenerate locally with `php artisan boost:install`)
+/boost.json
+/AGENTS.md
+/CLAUDE.md
+/.mcp.json
+/.cursor/mcp.json
+/.cursor/skills
+/.junie
+/.claude
+/.github/copilot-instructions.md
+/.ai/guidelines
+/.ai/skills

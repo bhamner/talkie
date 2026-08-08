@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body,
+html {
+    --font-sans:
+        'Nunito', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
+}
+
+@layer base {
+    :root {
+        --background: 198 100% 97%;
+        --foreground: 222 47% 18%;
+        --card: 0 0% 100%;
+        --card-foreground: 222 47% 18%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 222 47% 18%;
+        --primary: 14 94% 58%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 199 89% 48%;
+        --secondary-foreground: 0 0% 100%;
+        --muted: 198 60% 92%;
+        --muted-foreground: 215 20% 40%;
+        --accent: 48 98% 58%;
+        --accent-foreground: 222 47% 18%;
+        --destructive: 0 84% 60%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 199 45% 82%;
+        --input: 199 45% 85%;
+        --ring: 14 94% 58%;
+        --chart-1: 14 94% 58%;
+        --chart-2: 199 89% 48%;
+        --chart-3: 142 71% 45%;
+        --chart-4: 48 98% 58%;
+        --chart-5: 330 85% 60%;
+        --radius: 1.25rem;
+        --sidebar-background: 198 100% 97%;
+        --sidebar-foreground: 222 47% 18%;
+        --sidebar-primary: 14 94% 58%;
+        --sidebar-primary-foreground: 0 0% 100%;
+        --sidebar-accent: 199 89% 94%;
+        --sidebar-accent-foreground: 222 47% 18%;
+        --sidebar-border: 199 45% 82%;
+        --sidebar-ring: 14 94% 58%;
+    }
+
+    .dark {
+        --background: 210 40% 12%;
+        --foreground: 210 40% 98%;
+        --card: 210 35% 16%;
+        --card-foreground: 210 40% 98%;
+        --popover: 210 35% 16%;
+        --popover-foreground: 210 40% 98%;
+        --primary: 14 94% 60%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 199 80% 45%;
+        --secondary-foreground: 0 0% 100%;
+        --muted: 210 30% 20%;
+        --muted-foreground: 210 20% 70%;
+        --accent: 48 90% 55%;
+        --accent-foreground: 222 47% 12%;
+        --destructive: 0 72% 51%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 210 25% 26%;
+        --input: 210 25% 26%;
+        --ring: 14 94% 60%;
+        --chart-1: 14 94% 60%;
+        --chart-2: 199 80% 50%;
+        --chart-3: 142 60% 45%;
+        --chart-4: 48 90% 55%;
+        --chart-5: 330 75% 60%;
+        --sidebar-background: 210 40% 12%;
+        --sidebar-foreground: 210 40% 98%;
+        --sidebar-primary: 14 94% 60%;
+        --sidebar-primary-foreground: 0 0% 100%;
+        --sidebar-accent: 210 30% 20%;
+        --sidebar-accent-foreground: 210 40% 98%;
+        --sidebar-border: 210 25% 26%;
+        --sidebar-ring: 14 94% 60%;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+        background-image:
+            radial-gradient(circle at 10% 10%, hsl(48 98% 70% / 0.35), transparent 28%),
+            radial-gradient(circle at 90% 0%, hsl(199 89% 70% / 0.3), transparent 32%),
+            radial-gradient(circle at 80% 90%, hsl(330 85% 75% / 0.22), transparent 30%),
+            radial-gradient(circle at 5% 85%, hsl(142 71% 70% / 0.2), transparent 28%);
+        background-attachment: fixed;
+        min-height: 100vh;
+    }
+}
+
+@layer utilities {
+    .talkie-tile-0 {
+        @apply border-sky-300 bg-sky-100 text-sky-950 hover:bg-sky-200;
+    }
+
+    .talkie-tile-1 {
+        @apply border-amber-300 bg-amber-100 text-amber-950 hover:bg-amber-200;
+    }
+
+    .talkie-tile-2 {
+        @apply border-emerald-300 bg-emerald-100 text-emerald-950 hover:bg-emerald-200;
+    }
+
+    .talkie-tile-3 {
+        @apply border-rose-300 bg-rose-100 text-rose-950 hover:bg-rose-200;
+    }
+
+    .talkie-tile-4 {
+        @apply border-orange-300 bg-orange-100 text-orange-950 hover:bg-orange-200;
+    }
+
+    .talkie-tile-5 {
+        @apply border-teal-300 bg-teal-100 text-teal-950 hover:bg-teal-200;
+    }
+
+    .talkie-folder {
+        @apply border-secondary bg-secondary text-secondary-foreground shadow-md hover:brightness-110;
+    }
+}
