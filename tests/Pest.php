@@ -1,5 +1,11 @@
 <?php
 
+use App\Models\User;
+use App\Services\BoardTemplateService;
+use Database\Seeders\BoardTemplateSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
 /*
 |--------------------------------------------------------------------------
 | Test Case
@@ -11,8 +17,8 @@
 |
 */
 
-pest()->extend(Tests\TestCase::class)
-    ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
+pest()->extend(TestCase::class)
+    ->use(RefreshDatabase::class)
     ->in('Feature');
 
 /*
@@ -41,15 +47,20 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function createOnboardedUser(array $attributes = []): App\Models\User
+/**
+ * @param  array<string, mixed>  $attributes
+ */
+function createOnboardedUser(array $attributes = []): User
 {
-    test()->seed(Database\Seeders\BoardTemplateSeeder::class);
+    /** @var TestCase $test */
+    $test = test();
+    $test->seed(BoardTemplateSeeder::class);
 
-    $user = App\Models\User::factory()->create(array_merge([
+    $user = User::factory()->create(array_merge([
         'preferred_name' => 'Sam',
     ], $attributes));
 
-    app(App\Services\BoardTemplateService::class)->copyToUser($user);
+    app(BoardTemplateService::class)->copyToUser($user);
 
     $user->settings()->update([
         'voice_id' => 'device-default',

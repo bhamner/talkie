@@ -1,10 +1,10 @@
-import defaultTheme from 'tailwindcss/defaultTheme';
+const animate = require('tailwindcss-animate');
+const defaultTheme = require('tailwindcss/defaultTheme');
 
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
     darkMode: ['class'],
     content: [
-
         './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
         './storage/framework/views/*.php',
         './resources/views/**/*.blade.php',
@@ -74,5 +74,5 @@ export default {
             },
         },
     },
-    plugins: [require('tailwindcss-animate')],
+    plugins: [animate],
 };

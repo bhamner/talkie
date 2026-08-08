@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Menu;
+use App\Models\User;
 use App\Models\Word;
 use Database\Seeders\BoardTemplateSeeder;
 
@@ -23,7 +24,7 @@ test('new users can register and enter onboarding', function () {
     $this->assertAuthenticated();
     $response->assertRedirect(route('onboarding.gate', absolute: false));
 
-    $user = auth()->user();
+    $user = User::query()->where('email', 'test@example.com')->firstOrFail();
 
     expect(Menu::query()->forUser($user)->count())->toBeGreaterThan(0)
         ->and(Word::query()->forUser($user)->count())->toBeGreaterThan(0)

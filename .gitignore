@@ -36,10 +36,12 @@ Thumbs.db
 /.fleet
 /.idea
 /.nova
-/.vscode
+/.vscode/*
+!/.vscode/settings.json
 /.zed
 *.swp
 *.swo
+.vscode/*
 
 # Laravel Boost (regenerate locally with `php artisan boost:install`)
 /boost.json
