@@ -1,21 +1,23 @@
 ---
-description: Always check and fix IDE linter errors on edited files before finishing
+description: Always check IDE diagnostics and run project linters before finishing
 alwaysApply: true
 ---
 
 # Catch linter errors before finishing
 
-After creating or editing any file, run IDE diagnostics (`ReadLints`) on those paths and fix every new error/warning you introduced before reporting done. Do not leave the user to discover lint issues.
+After creating or editing any file, verify lint cleanliness before reporting done. Do not leave the user to discover lint issues in CI or the IDE.
 
 ## Checklist
 
 1. Edit files as needed.
-2. Run diagnostics on every touched path (and related configs if you changed imports/module format).
-3. Fix reported issues, then re-check until clean.
-4. Only then summarize for the user.
+2. Run IDE diagnostics (`ReadLints`) on every touched path.
+3. If any JS/TS/Vue files changed, also run `npm run lint` and fix every reported problem.
+4. If any PHP files changed, run `vendor/bin/pint --dirty --format agent`.
+5. Re-check until clean, then summarize for the user.
 
 ## Project gotchas
 
 - `package.json` has `"type": "module"`. Do not mix `require()` into ESM configs. For Tailwind, use `tailwind.config.cjs` with `require()` (CommonJS-only plugins/types).
-- After config renames, update `components.json` / eslint ignores and confirm IDE diagnostics are clean.
+- After config renames, update `components.json` / eslint ignores and confirm lint is clean.
 - Pest stubs and Inertia page path casing can pass locally and still fail CI; treat both as required.
+- Vue `defineProps` assigned to `props` will fail `@typescript-eslint/no-unused-vars` if you only use the prop in the template — call `defineProps<...>()` without binding, or destructure used fields.
