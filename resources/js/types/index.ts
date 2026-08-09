@@ -16,10 +16,17 @@ export interface NavItem {
     isActive?: boolean;
 }
 
+export interface SharedVoice {
+    id: string | null;
+    uri: string | null;
+    name: string | null;
+}
+
 export interface SharedData {
     name: string;
     quote: { message: string; author: string };
     auth: Auth;
+    voice: SharedVoice;
     ziggy: {
         location: string;
         url: string;

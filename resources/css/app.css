@@ -97,34 +97,22 @@ html {
         background-attachment: fixed;
         min-height: 100vh;
     }
+
+    body.talkie-nested-board {
+        background-image:
+            linear-gradient(hsl(199 95% 72% / 0.28), hsl(199 95% 72% / 0.28)),
+            radial-gradient(circle at 10% 10%, hsl(48 98% 70% / 0.35), transparent 28%),
+            radial-gradient(circle at 90% 0%, hsl(199 89% 70% / 0.3), transparent 32%),
+            radial-gradient(circle at 80% 90%, hsl(330 85% 75% / 0.22), transparent 30%),
+            radial-gradient(circle at 5% 85%, hsl(142 71% 70% / 0.2), transparent 28%);
+    }
 }
 
-@layer utilities {
-    .talkie-tile-0 {
-        @apply border-sky-300 bg-sky-100 text-sky-950 hover:bg-sky-200;
-    }
+.talkie-word {
+    @apply border-sky-200 text-slate-800 shadow-sm hover:bg-white/90;
+    background-color: rgb(255 255 255 / 0.72);
+}
 
-    .talkie-tile-1 {
-        @apply border-amber-300 bg-amber-100 text-amber-950 hover:bg-amber-200;
-    }
-
-    .talkie-tile-2 {
-        @apply border-emerald-300 bg-emerald-100 text-emerald-950 hover:bg-emerald-200;
-    }
-
-    .talkie-tile-3 {
-        @apply border-rose-300 bg-rose-100 text-rose-950 hover:bg-rose-200;
-    }
-
-    .talkie-tile-4 {
-        @apply border-orange-300 bg-orange-100 text-orange-950 hover:bg-orange-200;
-    }
-
-    .talkie-tile-5 {
-        @apply border-teal-300 bg-teal-100 text-teal-950 hover:bg-teal-200;
-    }
-
-    .talkie-folder {
-        @apply border-secondary bg-secondary text-secondary-foreground shadow-md hover:brightness-110;
-    }
+.talkie-folder {
+    @apply border-sky-500 bg-sky-500 text-white shadow-md hover:bg-sky-600;
 }

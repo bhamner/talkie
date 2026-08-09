@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Menu;
+use App\Models\Phrase;
 use App\Models\Word;
+use App\Services\BoardTemplateService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -13,6 +15,10 @@ class BoardController extends Controller
     public function show(Request $request, ?Menu $menu = null): Response
     {
         $user = $request->user();
+
+        if ($user) {
+            app(BoardTemplateService::class)->syncMissingCategoriesToUser($user);
+        }
 
         if ($menu) {
             if ($user) {
@@ -24,17 +30,21 @@ class BoardController extends Controller
 
         $menusQuery = Menu::query()->where('parent_id', $menu?->id)->orderBy('sort_order');
         $wordsQuery = Word::query()->where('menu_id', $menu?->id)->orderBy('sort_order');
+        $phrasesQuery = Phrase::query()->where('menu_id', $menu?->id)->orderBy('sort_order');
 
         if ($user) {
             $menusQuery->forUser($user);
             $wordsQuery->forUser($user);
+            $phrasesQuery->forUser($user);
         } else {
             $menusQuery->template();
             $wordsQuery->template();
+            $phrasesQuery->template();
         }
 
         $menus = $menusQuery->get(['id', 'name', 'parent_id', 'sort_order']);
         $words = $wordsQuery->get(['id', 'label', 'speak_text', 'menu_id', 'sort_order']);
+        $phrases = $phrasesQuery->get(['id', 'text', 'menu_id', 'sort_order']);
 
         $ancestors = [];
         $current = $menu;
@@ -66,6 +76,10 @@ class BoardController extends Controller
                 'id' => $word->id,
                 'label' => $word->label,
                 'speak_text' => $word->textToSpeak(),
+            ]),
+            'phrases' => $phrases->map(fn (Phrase $phrase) => [
+                'id' => $phrase->id,
+                'text' => $phrase->text,
             ]),
             'ancestors' => $ancestors,
             'is_guest' => $user === null,

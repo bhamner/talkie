@@ -2,9 +2,9 @@
 
 use App\Models\User;
 
-test('guests are redirected to the login page', function () {
+test('guests are redirected to personalize', function () {
     $response = $this->get('/dashboard');
-    $response->assertRedirect('/login');
+    $response->assertRedirect('/personalize');
 });
 
 test('authenticated users are redirected from dashboard through onboarding gate', function () {

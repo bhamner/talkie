@@ -2,16 +2,20 @@
 
 namespace App\Models;
 
+use Database\Factories\PhraseFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Menu extends Model
+class Phrase extends Model
 {
+    /** @use HasFactory<PhraseFactory> */
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
-        'parent_id',
-        'name',
+        'menu_id',
+        'text',
         'sort_order',
     ];
 
@@ -27,24 +31,9 @@ class Menu extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function parent(): BelongsTo
+    public function menu(): BelongsTo
     {
-        return $this->belongsTo(self::class, 'parent_id');
-    }
-
-    public function children(): HasMany
-    {
-        return $this->hasMany(self::class, 'parent_id')->orderBy('sort_order');
-    }
-
-    public function words(): HasMany
-    {
-        return $this->hasMany(Word::class)->orderBy('sort_order');
-    }
-
-    public function phrases(): HasMany
-    {
-        return $this->hasMany(Phrase::class)->orderBy('sort_order');
+        return $this->belongsTo(Menu::class);
     }
 
     public function scopeTemplate($query)

@@ -52,18 +52,11 @@ Then open [http://127.0.0.1:8000](http://127.0.0.1:8000) (or the URL shown by `p
 
 ### Seeded test user
 
-After `php artisan migrate --seed`:
+After `php artisan migrate --seed`, a local SSO-style user exists (`test@example.com`) with onboarding completed and a personal board copy. Sign-in in the app is single sign-on only (Google, Apple, or Facebook) — Talkie does not store passwords.
 
-| Field    | Value             |
-| -------- | ----------------- |
-| Email    | `test@example.com` |
-| Password | `password`         |
+### Social login
 
-That user already has onboarding completed and a personal board copy.
-
-### Social login (optional)
-
-OAuth is optional for local development. To enable Google, Apple, or Facebook, add credentials from each provider console to `.env` (see `.env.example`):
+Auth uses OAuth only. Add credentials from each provider console to `.env` (see `.env.example`):
 
 ```env
 GOOGLE_CLIENT_ID=

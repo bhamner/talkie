@@ -41,6 +41,7 @@ class SocialiteController extends Controller
             $user->forceFill([
                 'provider' => $provider,
                 'provider_id' => $socialUser->getId(),
+                'email' => $socialUser->getEmail() ?: $user->email,
                 'email_verified_at' => $user->email_verified_at ?? now(),
                 'name' => $user->name ?: ($socialUser->getName() ?: 'Talkie User'),
             ])->save();
@@ -48,7 +49,6 @@ class SocialiteController extends Controller
             $user = User::create([
                 'name' => $socialUser->getName() ?: 'Talkie User',
                 'email' => $socialUser->getEmail() ?: $provider.'-'.$socialUser->getId().'@users.talkie.local',
-                'password' => null,
                 'provider' => $provider,
                 'provider_id' => $socialUser->getId(),
                 'email_verified_at' => now(),

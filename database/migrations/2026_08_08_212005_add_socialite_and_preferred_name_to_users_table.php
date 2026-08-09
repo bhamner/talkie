@@ -22,7 +22,7 @@ return new class extends Migration
 
         if (! Schema::hasColumn('users', 'provider')) {
             Schema::table('users', function (Blueprint $table) {
-                $table->string('provider')->nullable()->after('password');
+                $table->string('provider')->nullable()->after('email_verified_at');
                 $table->string('provider_id')->nullable()->after('provider');
                 $table->unique(['provider', 'provider_id']);
             });

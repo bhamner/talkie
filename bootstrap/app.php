@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
         ]);
 
+        $middleware->redirectGuestsTo('/personalize');
+        $middleware->redirectUsersTo('/board');
+
         $middleware->validateCsrfTokens(except: [
             'auth/apple/callback',
         ]);

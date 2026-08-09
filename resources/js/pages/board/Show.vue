@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PhrasesPanel from '@/components/PhrasesPanel.vue';
 import { Button } from '@/components/ui/button';
 import { useSpeech } from '@/composables/useSpeech';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -9,9 +10,12 @@ import {
     Delete,
     FolderOpen,
     HandHeart,
+    Hash,
     Heart,
     Home,
     MapPin,
+    Palette,
+    Shapes,
     Smile,
     Sparkles,
     Users,
@@ -19,7 +23,7 @@ import {
     Volume2,
     Zap,
 } from 'lucide-vue-next';
-import { computed, ref, type Component, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, type Component, watch } from 'vue';
 
 type BoardMenu = {
     id: number;
@@ -34,6 +38,11 @@ type BoardWord = {
     speak_text: string;
 };
 
+type BoardPhrase = {
+    id: number;
+    text: string;
+};
+
 type Ancestor = {
     id: number;
     name: string;
@@ -43,11 +52,15 @@ const props = defineProps<{
     menu: { id: number; name: string; parent_id: number | null } | null;
     menus: BoardMenu[];
     words: BoardWord[];
+    phrases: BoardPhrase[];
     ancestors: Ancestor[];
     is_guest: boolean;
     preferred_name: string | null;
     voice: { id: string | null; uri: string | null; name: string | null };
 }>();
+
+const DOUBLE_TAP_MS = 280;
+const LONG_PRESS_MS = 500;
 
 const phrase = ref<BoardWord[]>([]);
 const { speak, selectedVoiceUri } = useSpeech(props.voice.uri);
@@ -66,13 +79,23 @@ const menuIcons: Record<string, Component> = {
     People: Users,
     Places: MapPin,
     Actions: Zap,
+    Colors: Palette,
+    Shapes: Shapes,
+    Numbers: Hash,
 };
 
 const phraseText = computed(() => phrase.value.map((word) => word.speak_text).join(' '));
 const showGreeting = computed(() => !props.is_guest && !props.menu && !!props.preferred_name);
-const pageTitle = computed(() => props.menu?.name ?? 'Home');
+const pageTitle = computed(() => props.menu?.name ?? 'Talkie');
+const isNestedBoard = computed(() => props.menu !== null);
 
-const tileClass = (index: number) => `talkie-tile-${index % 6}`;
+watch(
+    isNestedBoard,
+    (nested) => {
+        document.body.classList.toggle('talkie-nested-board', nested);
+    },
+    { immediate: true },
+);
 
 const menuIcon = (name: string) => menuIcons[name] ?? FolderOpen;
 
@@ -103,6 +126,76 @@ const speakGreeting = () => {
         speak(`Hello my name is ${props.preferred_name}`);
     }
 };
+
+let pendingAddTimer: ReturnType<typeof setTimeout> | null = null;
+let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+let longPressFired = false;
+let lastTap: { id: number; at: number } | null = null;
+
+const clearPendingAdd = () => {
+    if (pendingAddTimer !== null) {
+        clearTimeout(pendingAddTimer);
+        pendingAddTimer = null;
+    }
+};
+
+const clearLongPress = () => {
+    if (longPressTimer !== null) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+    }
+};
+
+const onWordPointerDown = (word: BoardWord) => {
+    longPressFired = false;
+    clearLongPress();
+
+    longPressTimer = setTimeout(() => {
+        longPressFired = true;
+        clearPendingAdd();
+        lastTap = null;
+        speakWord(word);
+    }, LONG_PRESS_MS);
+};
+
+const onWordPointerUp = (word: BoardWord, event: PointerEvent) => {
+    clearLongPress();
+
+    if (longPressFired) {
+        event.preventDefault();
+        return;
+    }
+
+    const now = Date.now();
+
+    if (lastTap && lastTap.id === word.id && now - lastTap.at < DOUBLE_TAP_MS) {
+        clearPendingAdd();
+        lastTap = null;
+        speakWord(word);
+        return;
+    }
+
+    lastTap = { id: word.id, at: now };
+    clearPendingAdd();
+    pendingAddTimer = setTimeout(() => {
+        addWord(word);
+        pendingAddTimer = null;
+    }, DOUBLE_TAP_MS);
+};
+
+const onWordPointerCancel = () => {
+    clearLongPress();
+};
+
+const onWordContextMenu = (event: Event) => {
+    event.preventDefault();
+};
+
+onBeforeUnmount(() => {
+    clearPendingAdd();
+    clearLongPress();
+    document.body.classList.remove('talkie-nested-board');
+});
 </script>
 
 <template>
@@ -111,13 +204,10 @@ const speakGreeting = () => {
     <AppLayout>
         <div class="flex h-full flex-1 flex-col gap-4">
             <div class="flex flex-wrap items-end justify-between gap-3">
-                <div>
-                    <p class="text-sm font-bold uppercase tracking-wide text-sky-600">
-                        {{ is_guest ? 'Guest board' : 'My board' }}
-                    </p>
+                <div v-if="menu">
                     <h1 class="flex items-center gap-2 text-3xl font-extrabold tracking-tight text-slate-800 sm:text-4xl">
-                        <component :is="menu ? menuIcon(menu.name) : Home" class="h-8 w-8 text-orange-500" />
-                        {{ pageTitle }}
+                        <component :is="menuIcon(menu.name)" class="h-8 w-8 text-orange-500" />
+                        {{ menu.name }}
                     </h1>
                 </div>
 
@@ -150,8 +240,7 @@ const speakGreeting = () => {
                     <span
                         v-for="(word, index) in phrase"
                         :key="`${word.id}-${index}`"
-                        class="rounded-full px-4 py-2 text-base font-extrabold shadow-sm"
-                        :class="tileClass(index)"
+                        class="talkie-word rounded-full border-2 px-4 py-2 text-base font-extrabold"
                     >
                         {{ word.label }}
                     </span>
@@ -190,6 +279,13 @@ const speakGreeting = () => {
                     >
                         Clear
                     </Button>
+                    <PhrasesPanel
+                        :phrases="phrases"
+                        :menu-id="menu?.id ?? null"
+                        :menu-name="menu?.name ?? 'Home'"
+                        :is-guest="is_guest"
+                        :speak="speak"
+                    />
                     <Button v-if="menu" type="button" variant="outline" class="h-12 rounded-full px-5 text-base font-extrabold" as-child>
                         <Link :href="menu.parent_id ? `/board/${menu.parent_id}` : '/board'">
                             <ArrowLeft class="mr-2 h-5 w-5" />
@@ -211,13 +307,15 @@ const speakGreeting = () => {
                 </Link>
 
                 <button
-                    v-for="(word, index) in words"
+                    v-for="word in words"
                     :key="`word-${word.id}`"
                     type="button"
-                    class="flex min-h-28 flex-col items-center justify-center gap-2 rounded-3xl border-2 px-3 py-4 text-center text-xl font-extrabold shadow-sm transition active:scale-95"
-                    :class="tileClass(index)"
-                    @click="addWord(word)"
-                    @dblclick="speakWord(word)"
+                    class="talkie-word flex min-h-28 touch-manipulation flex-col items-center justify-center gap-2 rounded-3xl border-2 px-3 py-4 text-center text-xl font-extrabold transition active:scale-95 select-none"
+                    @pointerdown="onWordPointerDown(word)"
+                    @pointerup="onWordPointerUp(word, $event)"
+                    @pointercancel="onWordPointerCancel"
+                    @pointerleave="onWordPointerCancel"
+                    @contextmenu="onWordContextMenu"
                 >
                     <Smile class="h-6 w-6 opacity-70" />
                     {{ word.label }}
@@ -230,7 +328,7 @@ const speakGreeting = () => {
 
             <p class="flex items-center justify-center gap-2 text-center text-sm font-semibold text-sky-700/80">
                 <BookOpen class="h-4 w-4" />
-                Tip: tap to add · double-tap to speak a word alone
+                Tip: tap to add · double-tap or press &amp; hold to speak alone
             </p>
         </div>
     </AppLayout>

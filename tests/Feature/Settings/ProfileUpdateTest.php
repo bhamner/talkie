@@ -10,14 +10,16 @@ test('profile page is displayed', function () {
     $response->assertOk();
 });
 
-test('profile information can be updated', function () {
-    $user = createOnboardedUser();
+test('profile name can be updated but email is not mass assigned', function () {
+    $user = createOnboardedUser([
+        'email' => 'owner@example.com',
+    ]);
 
     $response = $this
         ->actingAs($user)
         ->patch('/settings/profile', [
             'name' => 'Test User',
-            'email' => 'test@example.com',
+            'email' => 'attacker@example.com',
         ]);
 
     $response
@@ -26,35 +28,19 @@ test('profile information can be updated', function () {
 
     $user->refresh();
 
-    expect($user->name)->toBe('Test User');
-    expect($user->email)->toBe('test@example.com');
-    expect($user->email_verified_at)->toBeNull();
+    expect($user->name)->toBe('Test User')
+        ->and($user->email)->toBe('owner@example.com');
 });
 
-test('email verification status is unchanged when the email address is unchanged', function () {
-    $user = createOnboardedUser();
-
-    $response = $this
-        ->actingAs($user)
-        ->patch('/settings/profile', [
-            'name' => 'Test User',
-            'email' => $user->email,
-        ]);
-
-    $response
-        ->assertSessionHasNoErrors()
-        ->assertRedirect('/settings/profile');
-
-    expect($user->refresh()->email_verified_at)->not->toBeNull();
-});
-
-test('user can delete their account', function () {
-    $user = createOnboardedUser();
+test('user can delete their account by confirming email', function () {
+    $user = createOnboardedUser([
+        'email' => 'owner@example.com',
+    ]);
 
     $response = $this
         ->actingAs($user)
         ->delete('/settings/profile', [
-            'password' => 'password',
+            'confirmation' => 'owner@example.com',
         ]);
 
     $response
@@ -65,18 +51,20 @@ test('user can delete their account', function () {
     expect($user->fresh())->toBeNull();
 });
 
-test('correct password must be provided to delete account', function () {
-    $user = createOnboardedUser();
+test('account deletion requires the users email', function () {
+    $user = createOnboardedUser([
+        'email' => 'owner@example.com',
+    ]);
 
     $response = $this
         ->actingAs($user)
         ->from('/settings/profile')
         ->delete('/settings/profile', [
-            'password' => 'wrong-password',
+            'confirmation' => 'wrong@example.com',
         ]);
 
     $response
-        ->assertSessionHasErrors('password')
+        ->assertSessionHasErrors('confirmation')
         ->assertRedirect('/settings/profile');
 
     expect($user->fresh())->not->toBeNull();

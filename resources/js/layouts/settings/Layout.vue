@@ -3,7 +3,7 @@ import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { ArrowLeft, Mic, Palette, Shield, UserRound } from 'lucide-vue-next';
+import { ArrowLeft, Mic, Palette, UserRound } from 'lucide-vue-next';
 
 const sidebarNavItems: (NavItem & { icon: typeof Mic })[] = [
     {
@@ -15,11 +15,6 @@ const sidebarNavItems: (NavItem & { icon: typeof Mic })[] = [
         title: 'Profile',
         href: '/settings/profile',
         icon: UserRound,
-    },
-    {
-        title: 'Password',
-        href: '/settings/password',
-        icon: Shield,
     },
     {
         title: 'Appearance',

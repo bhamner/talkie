@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AppLogo from '@/components/AppLogo.vue';
+import TypingKeyboard from '@/components/TypingKeyboard.vue';
 import UserMenuContent from '@/components/UserMenuContent.vue';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -13,7 +14,7 @@ const user = computed(() => page.props.auth.user);
 </script>
 
 <template>
-    <div class="flex min-h-svh flex-col">
+    <div class="flex min-h-svh flex-col pb-20">
         <header class="sticky top-0 z-20 border-b border-sky-200/70 bg-white/80 px-4 py-3 backdrop-blur-md sm:px-6">
             <div class="mx-auto flex w-full max-w-6xl items-center justify-between gap-3">
                 <Link :href="route('board')" class="shrink-0">
@@ -78,5 +79,7 @@ const user = computed(() => page.props.auth.user);
                 Tap words to speak — personalize anytime to save your voice
             </span>
         </footer>
+
+        <TypingKeyboard />
     </div>
 </template>

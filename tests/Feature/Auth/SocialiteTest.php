@@ -70,6 +70,12 @@ test('socialite callback logs in an existing linked user', function () {
     $this->assertAuthenticatedAs($user);
 });
 
-test('personalize page can be rendered', function () {
-    $this->get('/personalize')->assertOk();
+test('personalize page can be rendered with sso only', function () {
+    $this->get('/personalize')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('auth/Personalize')
+            ->has('providers', 3)
+            ->missing('canResetPassword')
+        );
 });

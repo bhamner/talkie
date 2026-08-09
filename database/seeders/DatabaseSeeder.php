@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'preferred_name' => 'Test',
             'email' => 'test@example.com',
+            'provider' => 'google',
+            'provider_id' => 'seed-test-user',
         ]);
 
         app(BoardTemplateService::class)->copyToUser($user);

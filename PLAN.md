@@ -54,4 +54,4 @@ composer run dev
 - Complete name + voice onboarding
 - Use the greeting button and phrase bar
 
-Seeded user: `test@example.com` / `password` (onboarding already complete)
+Seeded user: `test@example.com` (SSO-style factory user; onboarding already complete). Auth is SSO-only.

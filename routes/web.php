@@ -6,6 +6,7 @@ use App\Http\Controllers\BoardController;
 use App\Http\Controllers\Onboarding\GateController;
 use App\Http\Controllers\Onboarding\NameController;
 use App\Http\Controllers\Onboarding\VoiceController as OnboardingVoiceController;
+use App\Http\Controllers\PhraseController;
 use App\Http\Middleware\EnsureOnboardingComplete;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +29,10 @@ Route::middleware('auth')->group(function () {
     Route::get('dashboard', function () {
         return redirect()->route('onboarding.gate');
     })->name('dashboard');
+
+    Route::post('phrases', [PhraseController::class, 'store'])
+        ->middleware(EnsureOnboardingComplete::class)
+        ->name('phrases.store');
 
     Route::get('onboarding', GateController::class)->name('onboarding.gate');
 

@@ -2,7 +2,6 @@
 import { useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
-// Components
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -19,10 +18,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-const passwordInput = ref<HTMLInputElement | null>(null);
+const props = defineProps<{
+    email: string;
+}>();
+
+const confirmationInput = ref<HTMLInputElement | null>(null);
 
 const form = useForm({
-    password: '',
+    confirmation: '',
 });
 
 const deleteUser = (e: Event) => {
@@ -31,7 +34,7 @@ const deleteUser = (e: Event) => {
     form.delete(route('profile.destroy'), {
         preserveScroll: true,
         onSuccess: () => closeModal(),
-        onError: () => passwordInput.value?.focus(),
+        onError: () => confirmationInput.value?.focus(),
         onFinish: () => form.reset(),
     });
 };
@@ -45,8 +48,8 @@ const closeModal = () => {
 <template>
     <div class="space-y-6">
         <HeadingSmall title="Delete account" description="Delete your account and all of its resources" />
-        <div class="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10">
-            <div class="relative space-y-0.5 text-red-600 dark:text-red-100">
+        <div class="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4">
+            <div class="relative space-y-0.5 text-red-600">
                 <p class="font-medium">Warning</p>
                 <p class="text-sm">Please proceed with caution, this cannot be undone.</p>
             </div>
@@ -59,24 +62,36 @@ const closeModal = () => {
                         <DialogHeader class="space-y-3">
                             <DialogTitle>Are you sure you want to delete your account?</DialogTitle>
                             <DialogDescription>
-                                Once your account is deleted, all of its resources and data will also be permanently deleted. Please enter your
-                                password to confirm you would like to permanently delete your account.
+                                Once your account is deleted, all of its resources and data will also be permanently
+                                deleted. Type your email address ({{ email }}) to confirm.
                             </DialogDescription>
                         </DialogHeader>
 
                         <div class="grid gap-2">
-                            <Label for="password" class="sr-only">Password</Label>
-                            <Input id="password" type="password" name="password" ref="passwordInput" v-model="form.password" placeholder="Password" />
-                            <InputError :message="form.errors.password" />
+                            <Label for="confirmation" class="sr-only">Confirmation</Label>
+                            <Input
+                                id="confirmation"
+                                ref="confirmationInput"
+                                v-model="form.confirmation"
+                                type="email"
+                                name="confirmation"
+                                :placeholder="email"
+                                autocomplete="off"
+                            />
+                            <InputError :message="form.errors.confirmation" />
                         </div>
 
                         <DialogFooter>
                             <DialogClose as-child>
-                                <Button variant="secondary" @click="closeModal"> Cancel </Button>
+                                <Button variant="secondary" @click="closeModal">Cancel</Button>
                             </DialogClose>
 
-                            <Button variant="destructive" :disabled="form.processing">
-                                <button type="submit">Delete account</button>
+                            <Button
+                                variant="destructive"
+                                type="submit"
+                                :disabled="form.processing || form.confirmation !== email"
+                            >
+                                Delete account
                             </Button>
                         </DialogFooter>
                     </form>
