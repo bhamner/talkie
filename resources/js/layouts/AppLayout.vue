@@ -4,6 +4,9 @@ import AppFullscreenLayout from '@/layouts/app/AppFullscreenLayout.vue';
 
 <template>
     <AppFullscreenLayout>
+        <template v-if="$slots.headerActions" #headerActions>
+            <slot name="headerActions" />
+        </template>
         <slot />
     </AppFullscreenLayout>
 </template>

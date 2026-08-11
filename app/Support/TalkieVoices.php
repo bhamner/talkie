@@ -11,6 +11,8 @@ class TalkieVoices
      *     description: string,
      *     tier: string,
      *     provider: string,
+     *     engine?: string|null,
+     *     model?: string|null,
      *     preview_text: string,
      *     selectable: bool
      * }>

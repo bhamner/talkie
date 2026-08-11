@@ -65,6 +65,20 @@ class BoardController extends Controller
                 : $parentQuery->template()->first();
         }
 
+        $phrasePayload = $phrases->map(fn (Phrase $phrase) => [
+            'id' => $phrase->id,
+            'text' => $phrase->text,
+            'is_greeting' => false,
+        ])->values()->all();
+
+        if ($menu === null && $user?->preferred_name) {
+            array_unshift($phrasePayload, [
+                'id' => 'greeting',
+                'text' => 'Hello, my name is '.$user->preferred_name,
+                'is_greeting' => true,
+            ]);
+        }
+
         return Inertia::render('board/Show', [
             'menu' => $menu ? [
                 'id' => $menu->id,
@@ -75,14 +89,12 @@ class BoardController extends Controller
             'words' => $words->map(fn (Word $word) => [
                 'id' => $word->id,
                 'label' => $word->label,
-                'speak_text' => $word->textToSpeak(),
+                'speak_text' => $word->speak_text,
             ]),
-            'phrases' => $phrases->map(fn (Phrase $phrase) => [
-                'id' => $phrase->id,
-                'text' => $phrase->text,
-            ]),
+            'phrases' => $phrasePayload,
             'ancestors' => $ancestors,
             'is_guest' => $user === null,
+            'can_edit' => $user !== null,
             'preferred_name' => $user?->preferred_name,
             'voice' => [
                 'id' => $user?->settings?->voice_id,

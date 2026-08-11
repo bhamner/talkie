@@ -6,11 +6,15 @@ import { Link } from '@inertiajs/vue3';
 defineProps<{
     title?: string;
     description?: string;
+    showTypingKeyboard?: boolean;
 }>();
 </script>
 
 <template>
-    <div class="flex min-h-svh flex-col items-center justify-center p-6 pb-24 md:p-10">
+    <div
+        class="flex min-h-svh flex-col items-center justify-center p-6 md:p-10"
+        :class="{ 'pb-24': showTypingKeyboard !== false }"
+    >
         <div class="w-full max-w-md">
             <div class="flex flex-col gap-6 rounded-3xl border-2 border-sky-200 bg-white/90 p-6 shadow-xl backdrop-blur sm:p-8">
                 <div class="flex flex-col items-center gap-4">
@@ -26,6 +30,6 @@ defineProps<{
             </div>
         </div>
 
-        <TypingKeyboard />
+        <TypingKeyboard v-if="showTypingKeyboard !== false" />
     </div>
 </template>

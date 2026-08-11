@@ -7,6 +7,17 @@ use App\Models\Word;
 use App\Services\BoardTemplateService;
 use Database\Seeders\BoardTemplateSeeder;
 
+test('template word labels are unique across all menus', function () {
+    $this->seed(BoardTemplateSeeder::class);
+
+    $labels = Word::query()
+        ->template()
+        ->pluck('label')
+        ->map(fn (string $label) => strtolower($label));
+
+    expect($labels->duplicates()->values()->all())->toBe([]);
+});
+
 test('copying the template includes colors shapes and numbers', function () {
     $this->seed(BoardTemplateSeeder::class);
 

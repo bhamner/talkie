@@ -19,9 +19,9 @@ withDefaults(defineProps<Props>(), {
         >
             <AppLogoIcon class="size-8" />
         </div>
-        <div v-if="!compact" class="grid text-left leading-tight">
+        <div v-if="!compact" class="flex items-baseline leading-none">
             <span class="text-xl font-extrabold tracking-tight text-sky-700">Talkie</span>
-            <span class="text-xs font-semibold text-orange-500">Let’s talk!</span>
+            <span class="text-xs font-semibold text-orange-500">.kids</span>
         </div>
     </div>
 </template>

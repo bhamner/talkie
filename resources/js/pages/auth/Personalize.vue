@@ -14,6 +14,7 @@ defineProps<{
     <AuthBase
         title="Personalize Talkie"
         description="Sign in with Google, Apple, or Facebook to save your name, voice, and custom word board."
+        :show-typing-keyboard="false"
     >
         <Head title="Personalize" />
 

@@ -1,23 +1,32 @@
 <script setup lang="ts">
+import BoardMenuDialog from '@/components/BoardMenuDialog.vue';
+import BoardWordDialog from '@/components/BoardWordDialog.vue';
+import BoardWordIcon from '@/components/BoardWordIcon.vue';
 import PhrasesPanel from '@/components/PhrasesPanel.vue';
 import { Button } from '@/components/ui/button';
+import { useBoardEditMode } from '@/composables/useBoardEditMode';
 import { useSpeech } from '@/composables/useSpeech';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { boardWordColor } from '@/lib/boardWordIcons';
+import { Head, Link, router } from '@inertiajs/vue3';
 import {
     ArrowLeft,
+    ArrowRight,
     BookOpen,
+    Check,
     Delete,
     FolderOpen,
-    HandHeart,
+    FolderPlus,
     Hash,
     Heart,
     Home,
     MapPin,
     Palette,
+    Pencil,
+    Plus,
     Shapes,
-    Smile,
     Sparkles,
+    Trash2,
     Users,
     Utensils,
     Volume2,
@@ -35,12 +44,13 @@ type BoardMenu = {
 type BoardWord = {
     id: number;
     label: string;
-    speak_text: string;
+    speak_text: string | null;
 };
 
 type BoardPhrase = {
-    id: number;
+    id: number | string;
     text: string;
+    is_greeting?: boolean;
 };
 
 type Ancestor = {
@@ -55,6 +65,7 @@ const props = defineProps<{
     phrases: BoardPhrase[];
     ancestors: Ancestor[];
     is_guest: boolean;
+    can_edit: boolean;
     preferred_name: string | null;
     voice: { id: string | null; uri: string | null; name: string | null };
 }>();
@@ -63,6 +74,11 @@ const DOUBLE_TAP_MS = 280;
 const LONG_PRESS_MS = 500;
 
 const phrase = ref<BoardWord[]>([]);
+const { editMode, exitEditMode } = useBoardEditMode();
+const wordDialogOpen = ref(false);
+const menuDialogOpen = ref(false);
+const editingWord = ref<BoardWord | null>(null);
+const editingMenu = ref<BoardMenu | null>(null);
 const { speak, selectedVoiceUri } = useSpeech(props.voice.uri);
 
 watch(
@@ -84,10 +100,12 @@ const menuIcons: Record<string, Component> = {
     Numbers: Hash,
 };
 
-const phraseText = computed(() => phrase.value.map((word) => word.speak_text).join(' '));
-const showGreeting = computed(() => !props.is_guest && !props.menu && !!props.preferred_name);
+const textToSpeak = (word: BoardWord) => word.speak_text?.trim() || word.label;
+
+const phraseText = computed(() => phrase.value.map((word) => textToSpeak(word)).join(' '));
 const pageTitle = computed(() => props.menu?.name ?? 'Talkie');
 const isNestedBoard = computed(() => props.menu !== null);
+const backHref = computed(() => (props.menu?.parent_id ? `/board/${props.menu.parent_id}` : route('board')));
 
 watch(
     isNestedBoard,
@@ -98,6 +116,12 @@ watch(
 );
 
 const menuIcon = (name: string) => menuIcons[name] ?? FolderOpen;
+
+const wordAccentStyle = (label: string) => {
+    const color = boardWordColor(label);
+
+    return color ? { color } : undefined;
+};
 
 const addWord = (word: BoardWord) => {
     phrase.value.push(word);
@@ -118,13 +142,7 @@ const speakPhrase = () => {
 };
 
 const speakWord = (word: BoardWord) => {
-    speak(word.speak_text);
-};
-
-const speakGreeting = () => {
-    if (props.preferred_name) {
-        speak(`Hello my name is ${props.preferred_name}`);
-    }
+    speak(textToSpeak(word));
 };
 
 let pendingAddTimer: ReturnType<typeof setTimeout> | null = null;
@@ -147,6 +165,10 @@ const clearLongPress = () => {
 };
 
 const onWordPointerDown = (word: BoardWord) => {
+    if (editMode.value) {
+        return;
+    }
+
     longPressFired = false;
     clearLongPress();
 
@@ -159,6 +181,10 @@ const onWordPointerDown = (word: BoardWord) => {
 };
 
 const onWordPointerUp = (word: BoardWord, event: PointerEvent) => {
+    if (editMode.value) {
+        return;
+    }
+
     clearLongPress();
 
     if (longPressFired) {
@@ -189,6 +215,56 @@ const onWordPointerCancel = () => {
 
 const onWordContextMenu = (event: Event) => {
     event.preventDefault();
+};
+
+const openAddWord = () => {
+    editingWord.value = null;
+    wordDialogOpen.value = true;
+};
+
+const openEditWord = (word: BoardWord) => {
+    editingWord.value = word;
+    wordDialogOpen.value = true;
+};
+
+const openAddMenu = () => {
+    editingMenu.value = null;
+    menuDialogOpen.value = true;
+};
+
+const openEditMenu = (menu: BoardMenu) => {
+    editingMenu.value = menu;
+    menuDialogOpen.value = true;
+};
+
+const boardMutation = {
+    preserveScroll: true,
+    preserveState: true,
+    only: ['words', 'menus'] as string[],
+};
+
+const deleteWord = (word: BoardWord) => {
+    if (!confirm(`Delete “${word.label}”?`)) {
+        return;
+    }
+
+    router.delete(route('words.destroy', word.id), boardMutation);
+};
+
+const deleteMenu = (menu: BoardMenu) => {
+    if (!confirm(`Delete folder “${menu.name}” and everything inside it?`)) {
+        return;
+    }
+
+    router.delete(route('menus.destroy', menu.id), boardMutation);
+};
+
+const moveWord = (word: BoardWord, direction: 'up' | 'down') => {
+    router.post(route('words.move', word.id), { direction }, boardMutation);
+};
+
+const moveMenu = (menu: BoardMenu, direction: 'up' | 'down') => {
+    router.post(route('menus.move', menu.id), { direction }, boardMutation);
 };
 
 onBeforeUnmount(() => {
@@ -225,17 +301,34 @@ onBeforeUnmount(() => {
                 </div>
             </div>
 
-            <button
-                v-if="showGreeting"
-                type="button"
-                class="flex min-h-24 w-full items-center justify-center gap-3 rounded-3xl bg-gradient-to-r from-orange-400 via-rose-400 to-pink-400 px-4 py-5 text-center text-2xl font-extrabold text-white shadow-lg transition hover:scale-[1.01] active:scale-[0.99] sm:text-3xl"
-                @click="speakGreeting"
+            <div
+                v-if="editMode && can_edit"
+                class="sticky top-[4.25rem] z-10 flex flex-wrap items-center justify-between gap-2 rounded-3xl border-2 border-orange-200 bg-orange-50/95 px-4 py-3 shadow-md backdrop-blur"
             >
-                <HandHeart class="h-8 w-8 shrink-0" />
-                Hello, my name is {{ preferred_name }}!
-            </button>
+                <div class="flex flex-wrap gap-2">
+                    <Button type="button" class="h-11 rounded-full px-4 font-extrabold" @click="openAddWord">
+                        <Plus class="mr-2 h-4 w-4" />
+                        Add word
+                    </Button>
+                    <Button type="button" variant="secondary" class="h-11 rounded-full px-4 font-extrabold" @click="openAddMenu">
+                        <FolderPlus class="mr-2 h-4 w-4" />
+                        Add folder
+                    </Button>
+                </div>
+                <Button
+                    type="button"
+                    class="h-11 rounded-full bg-green-600 px-5 font-extrabold text-white shadow-md hover:bg-green-700"
+                    @click="exitEditMode"
+                >
+                    <Check class="mr-2 h-5 w-5" />
+                    Done
+                </Button>
+            </div>
 
-            <div class="rounded-3xl border-2 border-sky-200 bg-white/90 p-4 shadow-md backdrop-blur">
+            <div
+                v-else
+                class="sticky top-[4.25rem] z-10 rounded-3xl border-2 border-sky-200 bg-white/90 p-4 shadow-md backdrop-blur"
+            >
                 <div class="mb-3 flex min-h-16 flex-wrap items-center gap-2">
                     <span
                         v-for="(word, index) in phrase"
@@ -250,35 +343,37 @@ onBeforeUnmount(() => {
                     </span>
                 </div>
 
-                <div class="flex flex-wrap gap-2">
-                    <Button
-                        type="button"
-                        class="h-12 rounded-full px-5 text-base font-extrabold shadow-md"
-                        @click="speakPhrase"
-                        :disabled="phrase.length === 0"
-                    >
-                        <Volume2 class="mr-2 h-5 w-5" />
-                        Speak
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        class="h-12 rounded-full px-5 text-base font-extrabold"
-                        @click="removeLast"
-                        :disabled="phrase.length === 0"
-                    >
-                        <Delete class="mr-2 h-5 w-5" />
-                        Oops
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        class="h-12 rounded-full px-5 text-base font-extrabold"
-                        @click="clearPhrase"
-                        :disabled="phrase.length === 0"
-                    >
-                        Clear
-                    </Button>
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex flex-wrap gap-2">
+                        <Button
+                            type="button"
+                            class="h-12 rounded-full px-5 text-base font-extrabold shadow-md"
+                            @click="speakPhrase"
+                            :disabled="phrase.length === 0"
+                        >
+                            <Volume2 class="mr-2 h-5 w-5" />
+                            Speak
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            class="h-12 rounded-full px-5 text-base font-extrabold"
+                            @click="removeLast"
+                            :disabled="phrase.length === 0"
+                        >
+                            <Delete class="mr-2 h-5 w-5" />
+                            Oops
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            class="h-12 rounded-full px-5 text-base font-extrabold"
+                            @click="clearPhrase"
+                            :disabled="phrase.length === 0"
+                        >
+                            Clear
+                        </Button>
+                    </div>
                     <PhrasesPanel
                         :phrases="phrases"
                         :menu-id="menu?.id ?? null"
@@ -286,40 +381,133 @@ onBeforeUnmount(() => {
                         :is-guest="is_guest"
                         :speak="speak"
                     />
-                    <Button v-if="menu" type="button" variant="outline" class="h-12 rounded-full px-5 text-base font-extrabold" as-child>
-                        <Link :href="menu.parent_id ? `/board/${menu.parent_id}` : '/board'">
-                            <ArrowLeft class="mr-2 h-5 w-5" />
-                            Back
-                        </Link>
-                    </Button>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                 <Link
-                    v-for="child in menus"
-                    :key="`menu-${child.id}`"
-                    :href="`/board/${child.id}`"
-                    class="talkie-folder flex min-h-28 flex-col items-center justify-center gap-2 rounded-3xl px-3 py-4 text-center text-xl font-extrabold transition active:scale-95"
+                    v-if="menu"
+                    :href="backHref"
+                    class="flex min-h-28 flex-col items-center justify-center gap-2 rounded-3xl border-2 border-slate-400 bg-slate-600 px-3 py-4 text-center text-xl font-extrabold text-white shadow-md transition active:scale-95"
                 >
-                    <component :is="menuIcon(child.name)" class="h-8 w-8" />
-                    {{ child.name }}
+                    <ArrowLeft class="h-8 w-8" />
+                    Back
                 </Link>
 
-                <button
-                    v-for="word in words"
-                    :key="`word-${word.id}`"
-                    type="button"
-                    class="talkie-word flex min-h-28 touch-manipulation flex-col items-center justify-center gap-2 rounded-3xl border-2 px-3 py-4 text-center text-xl font-extrabold transition active:scale-95 select-none"
-                    @pointerdown="onWordPointerDown(word)"
-                    @pointerup="onWordPointerUp(word, $event)"
-                    @pointercancel="onWordPointerCancel"
-                    @pointerleave="onWordPointerCancel"
-                    @contextmenu="onWordContextMenu"
-                >
-                    <Smile class="h-6 w-6 opacity-70" />
-                    {{ word.label }}
-                </button>
+                <template v-if="editMode && can_edit">
+                    <div
+                        v-for="child in menus"
+                        :key="`menu-${child.id}`"
+                        class="talkie-folder flex min-h-28 flex-col items-center justify-center gap-2 rounded-3xl px-3 py-4 text-center text-xl font-extrabold"
+                    >
+                        <component :is="menuIcon(child.name)" class="h-8 w-8" />
+                        {{ child.name }}
+                        <div class="mt-1 flex flex-wrap justify-center gap-1">
+                            <Button
+                                type="button"
+                                size="icon"
+                                class="h-8 w-8 rounded-full border border-slate-200 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
+                                @click="moveMenu(child, 'up')"
+                            >
+                                <ArrowLeft class="h-4 w-4" />
+                            </Button>
+                            <Button
+                                type="button"
+                                size="icon"
+                                class="h-8 w-8 rounded-full border border-slate-200 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
+                                @click="moveMenu(child, 'down')"
+                            >
+                                <ArrowRight class="h-4 w-4" />
+                            </Button>
+                            <Button
+                                type="button"
+                                size="icon"
+                                class="h-8 w-8 rounded-full border border-slate-200 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
+                                @click="openEditMenu(child)"
+                            >
+                                <Pencil class="h-4 w-4" />
+                            </Button>
+                            <Button type="button" size="icon" variant="destructive" class="h-8 w-8 rounded-full" @click="deleteMenu(child)">
+                                <Trash2 class="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                </template>
+                <template v-else>
+                    <Link
+                        v-for="child in menus"
+                        :key="`menu-${child.id}`"
+                        :href="`/board/${child.id}`"
+                        class="talkie-folder flex min-h-28 flex-col items-center justify-center gap-2 rounded-3xl px-3 py-4 text-center text-xl font-extrabold transition active:scale-95"
+                    >
+                        <component :is="menuIcon(child.name)" class="h-8 w-8" />
+                        {{ child.name }}
+                    </Link>
+                </template>
+
+                <template v-if="editMode && can_edit">
+                    <div
+                        v-for="word in words"
+                        :key="`word-${word.id}`"
+                        class="talkie-word flex min-h-28 flex-col items-center justify-center gap-2 rounded-3xl border-2 px-3 py-4 text-center text-xl font-extrabold"
+                        :style="wordAccentStyle(word.label)"
+                    >
+                        <BoardWordIcon
+                            :label="word.label"
+                            :icon-class="wordAccentStyle(word.label) ? undefined : 'opacity-70'"
+                        />
+                        {{ word.label }}
+                        <div class="mt-1 flex flex-wrap justify-center gap-1">
+                            <Button
+                                type="button"
+                                size="icon"
+                                class="h-8 w-8 rounded-full border border-slate-300 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
+                                @click="moveWord(word, 'up')"
+                            >
+                                <ArrowLeft class="h-4 w-4" />
+                            </Button>
+                            <Button
+                                type="button"
+                                size="icon"
+                                class="h-8 w-8 rounded-full border border-slate-300 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
+                                @click="moveWord(word, 'down')"
+                            >
+                                <ArrowRight class="h-4 w-4" />
+                            </Button>
+                            <Button
+                                type="button"
+                                size="icon"
+                                class="h-8 w-8 rounded-full border border-slate-300 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
+                                @click="openEditWord(word)"
+                            >
+                                <Pencil class="h-4 w-4" />
+                            </Button>
+                            <Button type="button" size="icon" variant="destructive" class="h-8 w-8 rounded-full" @click="deleteWord(word)">
+                                <Trash2 class="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                </template>
+                <template v-else>
+                    <button
+                        v-for="word in words"
+                        :key="`word-${word.id}`"
+                        type="button"
+                        class="talkie-word flex min-h-28 touch-manipulation flex-col items-center justify-center gap-2 rounded-3xl border-2 px-3 py-4 text-center text-xl font-extrabold transition active:scale-95 select-none"
+                        :style="wordAccentStyle(word.label)"
+                        @pointerdown="onWordPointerDown(word)"
+                        @pointerup="onWordPointerUp(word, $event)"
+                        @pointercancel="onWordPointerCancel"
+                        @pointerleave="onWordPointerCancel"
+                        @contextmenu="onWordContextMenu"
+                    >
+                        <BoardWordIcon
+                            :label="word.label"
+                            :icon-class="wordAccentStyle(word.label) ? undefined : 'opacity-70'"
+                        />
+                        {{ word.label }}
+                    </button>
+                </template>
             </div>
 
             <p v-if="menus.length === 0 && words.length === 0" class="text-center text-base font-semibold text-slate-500">
@@ -328,8 +516,23 @@ onBeforeUnmount(() => {
 
             <p class="flex items-center justify-center gap-2 text-center text-sm font-semibold text-sky-700/80">
                 <BookOpen class="h-4 w-4" />
-                Tip: tap to add · double-tap or press &amp; hold to speak alone
+                <span v-if="editMode">Edit mode: add, rename, pronounce, reorder, or delete tiles</span>
+                <span v-else>Tip: tap to add · double-tap or press &amp; hold to speak alone</span>
             </p>
         </div>
+
+        <BoardWordDialog
+            v-if="can_edit"
+            v-model:open="wordDialogOpen"
+            :menu-id="menu?.id ?? null"
+            :word="editingWord"
+            :speak="speak"
+        />
+        <BoardMenuDialog
+            v-if="can_edit"
+            v-model:open="menuDialogOpen"
+            :parent-id="menu?.id ?? null"
+            :menu="editingMenu"
+        />
     </AppLayout>
 </template>

@@ -2,11 +2,16 @@
 
 namespace App\Models;
 
+use Database\Factories\WordFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Word extends Model
 {
+    /** @use HasFactory<WordFactory> */
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'menu_id',

@@ -70,7 +70,7 @@ const submit = () => {
             <div class="space-y-6">
                 <HeadingSmall
                     title="Voice"
-                    description="Choose your speaking voice. Premium AI voices will unlock here later."
+                    description="Choose your speaking voice. Premium neural voices download to your device and work offline — coming with the mobile app."
                 />
 
                 <div v-if="!isSupported" class="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm">

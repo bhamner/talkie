@@ -8,8 +8,9 @@ import { MessageSquareText, Plus, Volume2, X } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 
 type BoardPhrase = {
-    id: number;
+    id: number | string;
     text: string;
+    is_greeting?: boolean;
 };
 
 const props = defineProps<{
@@ -92,7 +93,12 @@ const submit = () => {
                                 v-for="item in phrases"
                                 :key="item.id"
                                 type="button"
-                                class="flex min-h-16 items-center gap-3 rounded-2xl border-2 border-violet-100 bg-violet-50 px-4 py-4 text-left text-lg font-extrabold text-violet-950 shadow-sm transition hover:bg-violet-100 active:scale-[0.99] sm:text-xl"
+                                class="flex min-h-16 items-center gap-3 rounded-2xl border-2 px-4 py-4 text-left text-lg font-extrabold shadow-sm transition active:scale-[0.99] sm:text-xl"
+                                :class="
+                                    item.is_greeting
+                                        ? 'border-orange-200 bg-gradient-to-r from-orange-400 via-rose-400 to-pink-400 text-white hover:brightness-105'
+                                        : 'border-violet-100 bg-violet-50 text-violet-950 hover:bg-violet-100'
+                                "
                                 @click="speakPhrase(item.text)"
                             >
                                 <Volume2 class="h-5 w-5 shrink-0 opacity-70" />

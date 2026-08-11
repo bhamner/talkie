@@ -31,6 +31,12 @@ class BoardTemplateSeeder extends Seeder
             'finished',
         ]);
 
+        Word::query()
+            ->template()
+            ->whereNull('menu_id')
+            ->where('label', 'I')
+            ->update(['speak_text' => 'eye']);
+
         $this->phrases(null, [
             'I need help',
             'Please help me',

@@ -1,15 +1,31 @@
 <script setup lang="ts">
 import UserInfo from '@/components/UserInfo.vue';
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { useBoardEditMode } from '@/composables/useBoardEditMode';
 import type { User } from '@/types';
-import { Link } from '@inertiajs/vue3';
-import { Home, LogOut, Mic, Settings } from 'lucide-vue-next';
+import { Link, router } from '@inertiajs/vue3';
+import { LogOut, Mic, Pencil, UserRound } from 'lucide-vue-next';
 
 interface Props {
     user: User;
 }
 
 defineProps<Props>();
+
+const { enterEditMode } = useBoardEditMode();
+
+const goEditBoard = () => {
+    const onBoard = route().current('board');
+
+    if (onBoard) {
+        enterEditMode();
+        return;
+    }
+
+    router.visit(route('board'), {
+        onSuccess: () => enterEditMode(),
+    });
+};
 </script>
 
 <template>
@@ -20,11 +36,9 @@ defineProps<Props>();
     </DropdownMenuLabel>
     <DropdownMenuSeparator />
     <DropdownMenuGroup>
-        <DropdownMenuItem :as-child="true">
-            <Link class="block w-full" :href="route('board')" as="button">
-                <Home class="mr-2 h-4 w-4" />
-                Board
-            </Link>
+        <DropdownMenuItem @select="goEditBoard">
+            <Pencil class="mr-2 h-4 w-4" />
+            Edit board
         </DropdownMenuItem>
         <DropdownMenuItem :as-child="true">
             <Link class="block w-full" :href="route('voice.edit')" as="button">
@@ -34,8 +48,8 @@ defineProps<Props>();
         </DropdownMenuItem>
         <DropdownMenuItem :as-child="true">
             <Link class="block w-full" :href="route('profile.edit')" as="button">
-                <Settings class="mr-2 h-4 w-4" />
-                Settings
+                <UserRound class="mr-2 h-4 w-4" />
+                Profile
             </Link>
         </DropdownMenuItem>
     </DropdownMenuGroup>

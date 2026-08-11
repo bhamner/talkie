@@ -1,16 +1,41 @@
 <script setup lang="ts">
 import AppLogo from '@/components/AppLogo.vue';
+import ParentalGateDialog from '@/components/ParentalGateDialog.vue';
 import TypingKeyboard from '@/components/TypingKeyboard.vue';
 import UserMenuContent from '@/components/UserMenuContent.vue';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Mic, Settings, Smile, Sparkles, UserRound } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { Settings, Sparkles, UserRound } from 'lucide-vue-next';
+import { computed, nextTick, ref } from 'vue';
 
 const page = usePage<SharedData>();
 const user = computed(() => page.props.auth.user);
+
+const gateOpen = ref(false);
+const menuOpen = ref(false);
+
+const requestSettings = () => {
+    if (menuOpen.value) {
+        menuOpen.value = false;
+        return;
+    }
+
+    gateOpen.value = true;
+};
+
+const onMenuOpenChange = (open: boolean) => {
+    // Only close from outside interaction; opening always goes through the gate.
+    if (!open) {
+        menuOpen.value = false;
+    }
+};
+
+const onGateUnlocked = async () => {
+    await nextTick();
+    menuOpen.value = true;
+};
 </script>
 
 <template>
@@ -22,41 +47,29 @@ const user = computed(() => page.props.auth.user);
                 </Link>
 
                 <div class="flex items-center gap-2">
-                    <template v-if="user">
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            class="hidden rounded-full font-bold sm:inline-flex"
-                            as-child
-                        >
-                            <Link :href="route('voice.edit')">
-                                <Mic class="mr-1.5 h-4 w-4" />
-                                Voice
-                            </Link>
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            class="hidden rounded-full font-bold sm:inline-flex"
-                            as-child
-                        >
-                            <Link :href="route('profile.edit')">
-                                <Settings class="mr-1.5 h-4 w-4" />
-                                Settings
-                            </Link>
-                        </Button>
+                    <slot name="headerActions" />
 
-                        <DropdownMenu>
+                    <template v-if="user">
+                        <DropdownMenu :open="menuOpen" @update:open="onMenuOpenChange">
                             <DropdownMenuTrigger as-child>
-                                <Button size="sm" class="rounded-full font-bold">
-                                    <Smile class="mr-1.5 h-4 w-4" />
-                                    {{ user.preferred_name || user.name }}
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    class="rounded-full font-bold"
+                                    @pointerdown.prevent
+                                    @click="requestSettings"
+                                >
+                                    <Settings class="mr-1.5 h-4 w-4" />
+                                    Settings
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" class="min-w-56 rounded-2xl">
                                 <UserMenuContent :user="user" />
                             </DropdownMenuContent>
                         </DropdownMenu>
+
+                        <ParentalGateDialog v-model:open="gateOpen" @unlocked="onGateUnlocked" />
                     </template>
 
                     <Button v-else class="rounded-full font-extrabold shadow-md" as-child>

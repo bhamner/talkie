@@ -10,7 +10,7 @@ Built with **Laravel 12**, **Inertia**, **Vue 3**, **Tailwind CSS**, and device 
 - Nested word menus and phrase builder
 - Personalize flow: social or email auth → name → voice catalog
 - One-tap greeting: “Hello, my name is …”
-- Device TTS today, with UI ready for premium AI voices later
+- Device TTS today, with UI ready for premium downloadable neural voices (Piper/Kokoro) on mobile
 
 ## Requirements
 
@@ -114,7 +114,7 @@ php artisan boost:update
 | ---- | ------- |
 | `app/Http/Controllers` | Board, auth, onboarding, settings |
 | `app/Services/BoardTemplateService.php` | Copies shared template board to a user |
-| `config/talkie_voices.php` | Voice catalog (free + locked premium cards) |
+| `config/talkie_voices.php` | Voice catalog (free device + locked bundled Piper/Kokoro cards) |
 | `database/seeders/BoardTemplateSeeder.php` | Shared starter words/menus |
 | `resources/js/pages/board` | Full-screen speaking board UI |
 | `resources/js/pages/onboarding` | Name + voice onboarding |
@@ -161,7 +161,7 @@ Open a GitHub issue with:
 
 ### Feature ideas
 
-Discuss larger features in an issue first so we can align on scope (especially anything involving cloud TTS, billing, or mobile store packaging).
+Discuss larger features in an issue first so we can align on scope (especially premium voice packs, in-app purchases, or mobile store packaging).
 
 ## License
 
