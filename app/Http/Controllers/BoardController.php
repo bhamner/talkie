@@ -43,8 +43,8 @@ class BoardController extends Controller
         }
 
         $menus = $menusQuery->get(['id', 'name', 'parent_id', 'sort_order']);
-        $words = $wordsQuery->get(['id', 'label', 'speak_text', 'menu_id', 'sort_order']);
-        $phrases = $phrasesQuery->get(['id', 'text', 'menu_id', 'sort_order']);
+        $words = $wordsQuery->get(['id', 'label', 'speak_text', 'menu_id', 'sort_order', 'is_builtin', 'is_hidden']);
+        $phrases = $phrasesQuery->get(['id', 'text', 'menu_id', 'sort_order', 'is_builtin', 'is_hidden']);
 
         $ancestors = [];
         $current = $menu;
@@ -69,6 +69,8 @@ class BoardController extends Controller
             'id' => $phrase->id,
             'text' => $phrase->text,
             'is_greeting' => false,
+            'is_builtin' => $phrase->is_builtin,
+            'is_hidden' => $phrase->is_hidden,
         ])->values()->all();
 
         if ($menu === null && $user?->preferred_name) {
@@ -76,6 +78,8 @@ class BoardController extends Controller
                 'id' => 'greeting',
                 'text' => 'Hello, my name is '.$user->preferred_name,
                 'is_greeting' => true,
+                'is_builtin' => true,
+                'is_hidden' => false,
             ]);
         }
 
@@ -90,6 +94,8 @@ class BoardController extends Controller
                 'id' => $word->id,
                 'label' => $word->label,
                 'speak_text' => $word->speak_text,
+                'is_builtin' => $word->is_builtin,
+                'is_hidden' => $word->is_hidden,
             ]),
             'phrases' => $phrasePayload,
             'ancestors' => $ancestors,

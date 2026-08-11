@@ -40,8 +40,8 @@ const onGateUnlocked = async () => {
 
 <template>
     <div class="flex min-h-svh flex-col pb-20">
-        <header class="sticky top-0 z-20 border-b border-sky-200/70 bg-white/80 px-4 py-3 backdrop-blur-md sm:px-6">
-            <div class="mx-auto flex w-full max-w-6xl items-center justify-between gap-3">
+        <header class="sticky top-0 z-20 border-b border-sky-200/70 bg-white/80 px-2 py-3 backdrop-blur-md sm:px-3">
+            <div class="flex w-full items-center justify-between gap-3">
                 <Link :href="route('board')" class="shrink-0">
                     <AppLogo />
                 </Link>
@@ -82,11 +82,11 @@ const onGateUnlocked = async () => {
             </div>
         </header>
 
-        <main class="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 py-4 sm:px-6 sm:py-6">
+        <main class="flex w-full flex-1 flex-col px-2 py-3 sm:px-3 sm:py-4">
             <slot />
         </main>
 
-        <footer v-if="!user" class="px-4 pb-4 text-center text-sm font-semibold text-sky-700/80 sm:px-6">
+        <footer v-if="!user" class="px-2 pb-4 text-center text-sm font-semibold text-sky-700/80 sm:px-3">
             <span class="inline-flex items-center gap-1">
                 <UserRound class="h-4 w-4" />
                 Tap words to speak — personalize anytime to save your voice

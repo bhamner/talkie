@@ -34,10 +34,15 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware(EnsureOnboardingComplete::class)->group(function () {
         Route::post('phrases', [PhraseController::class, 'store'])->name('phrases.store');
+        Route::delete('phrases/{phrase}', [PhraseController::class, 'destroy'])->name('phrases.destroy');
+        Route::post('phrases/{phrase}/hide', [PhraseController::class, 'hide'])->name('phrases.hide');
+        Route::post('phrases/{phrase}/unhide', [PhraseController::class, 'unhide'])->name('phrases.unhide');
 
         Route::post('words', [WordController::class, 'store'])->name('words.store');
         Route::put('words/{word}', [WordController::class, 'update'])->name('words.update');
         Route::delete('words/{word}', [WordController::class, 'destroy'])->name('words.destroy');
+        Route::post('words/{word}/hide', [WordController::class, 'hide'])->name('words.hide');
+        Route::post('words/{word}/unhide', [WordController::class, 'unhide'])->name('words.unhide');
         Route::post('words/{word}/move', [WordController::class, 'move'])->name('words.move');
 
         Route::post('menus', [MenuController::class, 'store'])->name('menus.store');

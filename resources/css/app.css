@@ -116,3 +116,7 @@ html {
 .talkie-folder {
     @apply border-sky-500 bg-sky-500 text-white shadow-md hover:bg-sky-600;
 }
+
+.talkie-tile {
+    @apply flex min-h-[4.5rem] flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-center text-sm font-extrabold sm:min-h-20 sm:text-base;
+}

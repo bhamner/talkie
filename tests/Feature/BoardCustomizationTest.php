@@ -80,11 +80,48 @@ test('authenticated users can update word pronunciation', function () {
     expect($word->fresh()->speak_text)->toBe('aye');
 });
 
-test('authenticated users can delete a word', function () {
+test('authenticated users can hide built-in words but not delete them', function () {
     $this->seed(BoardTemplateSeeder::class);
     $user = onboardedUser();
 
     $word = Word::query()->forUser($user)->where('label', 'finished')->firstOrFail();
+
+    expect($word->is_builtin)->toBeTrue();
+
+    $this->actingAs($user)
+        ->from('/board')
+        ->delete(route('words.destroy', $word))
+        ->assertForbidden();
+
+    expect(Word::query()->whereKey($word->id)->exists())->toBeTrue();
+
+    $this->actingAs($user)
+        ->from('/board')
+        ->post(route('words.hide', $word))
+        ->assertRedirect('/board');
+
+    expect($word->fresh()->is_hidden)->toBeTrue();
+
+    $this->actingAs($user)
+        ->from('/board')
+        ->post(route('words.unhide', $word))
+        ->assertRedirect('/board');
+
+    expect($word->fresh()->is_hidden)->toBeFalse();
+});
+
+test('authenticated users can delete custom words', function () {
+    $this->seed(BoardTemplateSeeder::class);
+    $user = onboardedUser();
+
+    $word = Word::query()->create([
+        'user_id' => $user->id,
+        'menu_id' => null,
+        'label' => 'pizza',
+        'sort_order' => 99,
+        'is_builtin' => false,
+        'is_hidden' => false,
+    ]);
 
     $this->actingAs($user)
         ->from('/board')

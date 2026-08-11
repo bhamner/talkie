@@ -24,6 +24,8 @@ class PhraseFactory extends Factory
             'menu_id' => null,
             'text' => fake()->sentence(4),
             'sort_order' => fake()->numberBetween(1, 20),
+            'is_builtin' => false,
+            'is_hidden' => false,
         ];
     }
 
@@ -31,6 +33,14 @@ class PhraseFactory extends Factory
     {
         return $this->state(fn () => [
             'user_id' => null,
+            'is_builtin' => true,
+        ]);
+    }
+
+    public function builtin(): static
+    {
+        return $this->state(fn () => [
+            'is_builtin' => true,
         ]);
     }
 

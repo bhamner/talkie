@@ -15,11 +15,11 @@ test('guests can view the shared board', function () {
             ->component('board/Show')
             ->where('is_guest', true)
             ->where('menu', null)
-            ->has('menus', 8)
+            ->has('menus', 26)
             ->has('words')
-            ->where('menus.5.name', 'Colors')
-            ->where('menus.6.name', 'Shapes')
-            ->where('menus.7.name', 'Numbers')
+            ->where('menus.23.name', 'Colors')
+            ->where('menus.24.name', 'Shapes')
+            ->where('menus.25.name', 'Numbers')
         );
 });
 

@@ -38,9 +38,19 @@ class BoardTemplateService
     {
         DB::transaction(function () use ($user) {
             $this->ensureSettings($user);
+            $this->renameObsoleteMenus($user);
             $this->syncMissingTopLevelMenus($user);
             $this->syncMissingPhrases($user);
         });
+    }
+
+    private function renameObsoleteMenus(User $user): void
+    {
+        Menu::query()
+            ->forUser($user)
+            ->whereNull('parent_id')
+            ->where('name', 'Small words')
+            ->update(['name' => 'Where']);
     }
 
     private function ensureSettings(User $user): void
@@ -100,6 +110,8 @@ class BoardTemplateService
                 'label' => $templateWord->label,
                 'speak_text' => $templateWord->speak_text,
                 'sort_order' => $templateWord->sort_order,
+                'is_builtin' => true,
+                'is_hidden' => false,
             ]);
         }
 
@@ -116,6 +128,8 @@ class BoardTemplateService
                     : null,
                 'text' => $templatePhrase->text,
                 'sort_order' => $templatePhrase->sort_order,
+                'is_builtin' => true,
+                'is_hidden' => false,
             ]);
         }
     }
@@ -204,6 +218,8 @@ class BoardTemplateService
                 'menu_id' => $userMenuId,
                 'text' => $templatePhrase->text,
                 'sort_order' => $templatePhrase->sort_order,
+                'is_builtin' => true,
+                'is_hidden' => false,
             ]);
         }
     }
@@ -230,6 +246,8 @@ class BoardTemplateService
                 'label' => $templateWord->label,
                 'speak_text' => $templateWord->speak_text,
                 'sort_order' => $templateWord->sort_order,
+                'is_builtin' => true,
+                'is_hidden' => false,
             ]);
         }
 
@@ -245,6 +263,8 @@ class BoardTemplateService
                 'menu_id' => $copy->id,
                 'text' => $templatePhrase->text,
                 'sort_order' => $templatePhrase->sort_order,
+                'is_builtin' => true,
+                'is_hidden' => false,
             ]);
         }
 

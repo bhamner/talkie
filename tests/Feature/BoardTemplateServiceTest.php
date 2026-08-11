@@ -5,6 +5,7 @@ use App\Models\Phrase;
 use App\Models\User;
 use App\Models\Word;
 use App\Services\BoardTemplateService;
+use App\Support\CoreVocabulary;
 use Database\Seeders\BoardTemplateSeeder;
 
 test('template word labels are unique across all menus', function () {
@@ -16,6 +17,39 @@ test('template word labels are unique across all menus', function () {
         ->map(fn (string $label) => strtolower($label));
 
     expect($labels->duplicates()->values()->all())->toBe([]);
+});
+
+test('scored core words are on the home board in frequency order', function () {
+    $this->seed(BoardTemplateSeeder::class);
+
+    $homeLabels = Word::query()
+        ->template()
+        ->whereNull('menu_id')
+        ->orderBy('sort_order')
+        ->pluck('label')
+        ->all();
+
+    $scored = CoreVocabulary::scoredHomeWords();
+
+    expect(array_slice($homeLabels, 0, count($scored)))->toBe($scored);
+});
+
+test('filtered preschool and scored vocabulary are represented on the template board', function () {
+    $this->seed(BoardTemplateSeeder::class);
+
+    $labels = Word::query()
+        ->template()
+        ->pluck('label')
+        ->map(fn (string $label) => strtolower($label))
+        ->unique()
+        ->all();
+
+    $missing = collect(CoreVocabulary::requiredBoardLabels())
+        ->reject(fn (string $label) => in_array(strtolower($label), $labels, true))
+        ->values()
+        ->all();
+
+    expect($missing)->toBe([]);
 });
 
 test('copying the template includes colors shapes and numbers', function () {

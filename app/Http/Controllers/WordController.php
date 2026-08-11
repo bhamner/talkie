@@ -28,6 +28,8 @@ class WordController extends Controller
             'label' => trim($validated['label']),
             'speak_text' => filled($validated['speak_text'] ?? null) ? trim($validated['speak_text']) : null,
             'sort_order' => $nextSortOrder,
+            'is_builtin' => false,
+            'is_hidden' => false,
         ]);
 
         return back();
@@ -50,8 +52,29 @@ class WordController extends Controller
     public function destroy(Request $request, Word $word): RedirectResponse
     {
         abort_unless($word->user_id === $request->user()->id, 404);
+        abort_if($word->is_builtin, 403);
 
         $word->delete();
+
+        return back();
+    }
+
+    public function hide(Request $request, Word $word): RedirectResponse
+    {
+        abort_unless($word->user_id === $request->user()->id, 404);
+        abort_unless($word->is_builtin, 403);
+
+        $word->update(['is_hidden' => true]);
+
+        return back();
+    }
+
+    public function unhide(Request $request, Word $word): RedirectResponse
+    {
+        abort_unless($word->user_id === $request->user()->id, 404);
+        abort_unless($word->is_builtin, 403);
+
+        $word->update(['is_hidden' => false]);
 
         return back();
     }

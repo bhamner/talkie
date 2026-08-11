@@ -17,12 +17,16 @@ class Phrase extends Model
         'menu_id',
         'text',
         'sort_order',
+        'is_builtin',
+        'is_hidden',
     ];
 
     protected function casts(): array
     {
         return [
             'sort_order' => 'integer',
+            'is_builtin' => 'boolean',
+            'is_hidden' => 'boolean',
         ];
     }
 
@@ -44,5 +48,10 @@ class Phrase extends Model
     public function scopeForUser($query, User $user)
     {
         return $query->where('user_id', $user->id);
+    }
+
+    public function scopeVisible($query)
+    {
+        return $query->where('is_hidden', false);
     }
 }

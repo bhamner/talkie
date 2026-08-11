@@ -8,24 +8,41 @@ import { useBoardEditMode } from '@/composables/useBoardEditMode';
 import { useSpeech } from '@/composables/useSpeech';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { boardWordColor } from '@/lib/boardWordIcons';
+import {
+    applyMorphToLast,
+    displayLabel,
+    MORPH_TILES,
+    phraseSpeakText,
+    removeLastPhrasePart,
+    type MorphKind,
+    type PhraseToken,
+} from '@/lib/morphPhrase';
 import { Head, Link, router } from '@inertiajs/vue3';
 import {
     ArrowLeft,
     ArrowRight,
     BookOpen,
+    Car,
     Check,
+    Clock,
     Delete,
+    Eye,
+    EyeOff,
     FolderOpen,
     FolderPlus,
     Hash,
     Heart,
     Home,
+    Link2,
     MapPin,
+    MessageCircle,
     Palette,
     Pencil,
     Plus,
     Shapes,
+    Sofa,
     Sparkles,
+    TreePine,
     Trash2,
     Users,
     Utensils,
@@ -45,12 +62,16 @@ type BoardWord = {
     id: number;
     label: string;
     speak_text: string | null;
+    is_builtin?: boolean;
+    is_hidden?: boolean;
 };
 
 type BoardPhrase = {
     id: number | string;
     text: string;
     is_greeting?: boolean;
+    is_builtin?: boolean;
+    is_hidden?: boolean;
 };
 
 type Ancestor = {
@@ -73,7 +94,7 @@ const props = defineProps<{
 const DOUBLE_TAP_MS = 280;
 const LONG_PRESS_MS = 500;
 
-const phrase = ref<BoardWord[]>([]);
+const phrase = ref<PhraseToken[]>([]);
 const { editMode, exitEditMode } = useBoardEditMode();
 const wordDialogOpen = ref(false);
 const menuDialogOpen = ref(false);
@@ -89,12 +110,30 @@ watch(
 );
 
 const menuIcons: Record<string, Component> = {
+    Joiners: Link2,
+    Where: MapPin,
+    'Can & will': Zap,
+    'Do & did': Zap,
+    'This & that': MessageCircle,
+    Amount: Hash,
+    Really: Sparkles,
+    Pronouns: Users,
+    Questions: MessageCircle,
     Food: Utensils,
     Drinks: Utensils,
     Feelings: Heart,
     People: Users,
     Places: MapPin,
     Actions: Zap,
+    Describing: Palette,
+    Toys: Sparkles,
+    Furniture: Sofa,
+    Vehicles: Car,
+    Nature: TreePine,
+    Time: Clock,
+    Animals: Sparkles,
+    Body: Heart,
+    Social: MessageCircle,
     Colors: Palette,
     Shapes: Shapes,
     Numbers: Hash,
@@ -102,8 +141,8 @@ const menuIcons: Record<string, Component> = {
 
 const textToSpeak = (word: BoardWord) => word.speak_text?.trim() || word.label;
 
-const phraseText = computed(() => phrase.value.map((word) => textToSpeak(word)).join(' '));
-const pageTitle = computed(() => props.menu?.name ?? 'Talkie');
+const phraseText = computed(() => phraseSpeakText(phrase.value));
+const pageTitle = computed(() => props.menu?.name ?? '');
 const isNestedBoard = computed(() => props.menu !== null);
 const backHref = computed(() => (props.menu?.parent_id ? `/board/${props.menu.parent_id}` : route('board')));
 
@@ -117,6 +156,8 @@ watch(
 
 const menuIcon = (name: string) => menuIcons[name] ?? FolderOpen;
 
+const playableWords = computed(() => props.words.filter((word) => !word.is_hidden));
+
 const wordAccentStyle = (label: string) => {
     const color = boardWordColor(label);
 
@@ -124,11 +165,15 @@ const wordAccentStyle = (label: string) => {
 };
 
 const addWord = (word: BoardWord) => {
-    phrase.value.push(word);
+    phrase.value.push({ word });
+};
+
+const applyMorph = (kind: MorphKind) => {
+    phrase.value = applyMorphToLast(phrase.value, kind);
 };
 
 const removeLast = () => {
-    phrase.value.pop();
+    phrase.value = removeLastPhrasePart(phrase.value);
 };
 
 const clearPhrase = () => {
@@ -244,11 +289,23 @@ const boardMutation = {
 };
 
 const deleteWord = (word: BoardWord) => {
+    if (word.is_builtin) {
+        return;
+    }
+
     if (!confirm(`Delete “${word.label}”?`)) {
         return;
     }
 
     router.delete(route('words.destroy', word.id), boardMutation);
+};
+
+const hideWord = (word: BoardWord) => {
+    router.post(route('words.hide', word.id), {}, boardMutation);
+};
+
+const unhideWord = (word: BoardWord) => {
+    router.post(route('words.unhide', word.id), {}, boardMutation);
 };
 
 const deleteMenu = (menu: BoardMenu) => {
@@ -331,16 +388,31 @@ onBeforeUnmount(() => {
             >
                 <div class="mb-3 flex min-h-16 flex-wrap items-center gap-2">
                     <span
-                        v-for="(word, index) in phrase"
-                        :key="`${word.id}-${index}`"
+                        v-for="(token, index) in phrase"
+                        :key="`${token.word.id}-${index}-${token.morph ?? 'base'}`"
                         class="talkie-word rounded-full border-2 px-4 py-2 text-base font-extrabold"
                     >
-                        {{ word.label }}
+                        {{ displayLabel(token) }}
                     </span>
                     <span v-if="phrase.length === 0" class="inline-flex items-center gap-2 text-base font-semibold text-slate-500">
                         <Sparkles class="h-4 w-4 text-amber-500" />
                         Tap words to build a fun phrase
                     </span>
+                </div>
+
+                <div class="mb-3 flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Endings</span>
+                    <Button
+                        v-for="tile in MORPH_TILES"
+                        :key="tile.kind"
+                        type="button"
+                        size="sm"
+                        class="h-10 min-w-12 rounded-full border-2 border-slate-300 bg-slate-600 px-4 text-base font-extrabold text-white shadow-sm hover:bg-slate-700"
+                        :disabled="phrase.length === 0"
+                        @click="applyMorph(tile.kind)"
+                    >
+                        {{ tile.label }}
+                    </Button>
                 </div>
 
                 <div class="flex flex-wrap items-center justify-between gap-2">
@@ -384,13 +456,13 @@ onBeforeUnmount(() => {
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div class="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7">
                 <Link
                     v-if="menu"
                     :href="backHref"
-                    class="flex min-h-28 flex-col items-center justify-center gap-2 rounded-3xl border-2 border-slate-400 bg-slate-600 px-3 py-4 text-center text-xl font-extrabold text-white shadow-md transition active:scale-95"
+                    class="talkie-tile border-2 border-slate-400 bg-slate-600 text-white shadow-md transition active:scale-95"
                 >
-                    <ArrowLeft class="h-8 w-8" />
+                    <ArrowLeft class="h-5 w-5" />
                     Back
                 </Link>
 
@@ -398,37 +470,37 @@ onBeforeUnmount(() => {
                     <div
                         v-for="child in menus"
                         :key="`menu-${child.id}`"
-                        class="talkie-folder flex min-h-28 flex-col items-center justify-center gap-2 rounded-3xl px-3 py-4 text-center text-xl font-extrabold"
+                        class="talkie-folder talkie-tile"
                     >
-                        <component :is="menuIcon(child.name)" class="h-8 w-8" />
+                        <component :is="menuIcon(child.name)" class="h-5 w-5" />
                         {{ child.name }}
-                        <div class="mt-1 flex flex-wrap justify-center gap-1">
+                        <div class="mt-0.5 flex flex-wrap justify-center gap-0.5">
                             <Button
                                 type="button"
                                 size="icon"
-                                class="h-8 w-8 rounded-full border border-slate-200 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
+                                class="h-7 w-7 rounded-full border border-slate-200 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
                                 @click="moveMenu(child, 'up')"
                             >
-                                <ArrowLeft class="h-4 w-4" />
+                                <ArrowLeft class="h-3.5 w-3.5" />
                             </Button>
                             <Button
                                 type="button"
                                 size="icon"
-                                class="h-8 w-8 rounded-full border border-slate-200 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
+                                class="h-7 w-7 rounded-full border border-slate-200 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
                                 @click="moveMenu(child, 'down')"
                             >
-                                <ArrowRight class="h-4 w-4" />
+                                <ArrowRight class="h-3.5 w-3.5" />
                             </Button>
                             <Button
                                 type="button"
                                 size="icon"
-                                class="h-8 w-8 rounded-full border border-slate-200 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
+                                class="h-7 w-7 rounded-full border border-slate-200 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
                                 @click="openEditMenu(child)"
                             >
-                                <Pencil class="h-4 w-4" />
+                                <Pencil class="h-3.5 w-3.5" />
                             </Button>
-                            <Button type="button" size="icon" variant="destructive" class="h-8 w-8 rounded-full" @click="deleteMenu(child)">
-                                <Trash2 class="h-4 w-4" />
+                            <Button type="button" size="icon" variant="destructive" class="h-7 w-7 rounded-full" @click="deleteMenu(child)">
+                                <Trash2 class="h-3.5 w-3.5" />
                             </Button>
                         </div>
                     </div>
@@ -438,9 +510,9 @@ onBeforeUnmount(() => {
                         v-for="child in menus"
                         :key="`menu-${child.id}`"
                         :href="`/board/${child.id}`"
-                        class="talkie-folder flex min-h-28 flex-col items-center justify-center gap-2 rounded-3xl px-3 py-4 text-center text-xl font-extrabold transition active:scale-95"
+                        class="talkie-folder talkie-tile transition active:scale-95"
                     >
-                        <component :is="menuIcon(child.name)" class="h-8 w-8" />
+                        <component :is="menuIcon(child.name)" class="h-5 w-5" />
                         {{ child.name }}
                     </Link>
                 </template>
@@ -449,51 +521,81 @@ onBeforeUnmount(() => {
                     <div
                         v-for="word in words"
                         :key="`word-${word.id}`"
-                        class="talkie-word flex min-h-28 flex-col items-center justify-center gap-2 rounded-3xl border-2 px-3 py-4 text-center text-xl font-extrabold"
+                        class="talkie-word talkie-tile border-2"
+                        :class="word.is_hidden ? 'opacity-45' : undefined"
                         :style="wordAccentStyle(word.label)"
                     >
                         <BoardWordIcon
                             :label="word.label"
+                            :size="18"
                             :icon-class="wordAccentStyle(word.label) ? undefined : 'opacity-70'"
                         />
                         {{ word.label }}
-                        <div class="mt-1 flex flex-wrap justify-center gap-1">
+                        <div class="mt-0.5 flex flex-wrap justify-center gap-0.5">
                             <Button
                                 type="button"
                                 size="icon"
-                                class="h-8 w-8 rounded-full border border-slate-300 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
+                                class="h-7 w-7 rounded-full border border-slate-300 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
                                 @click="moveWord(word, 'up')"
                             >
-                                <ArrowLeft class="h-4 w-4" />
+                                <ArrowLeft class="h-3.5 w-3.5" />
                             </Button>
                             <Button
                                 type="button"
                                 size="icon"
-                                class="h-8 w-8 rounded-full border border-slate-300 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
+                                class="h-7 w-7 rounded-full border border-slate-300 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
                                 @click="moveWord(word, 'down')"
                             >
-                                <ArrowRight class="h-4 w-4" />
+                                <ArrowRight class="h-3.5 w-3.5" />
                             </Button>
                             <Button
                                 type="button"
                                 size="icon"
-                                class="h-8 w-8 rounded-full border border-slate-300 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
+                                class="h-7 w-7 rounded-full border border-slate-300 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
                                 @click="openEditWord(word)"
                             >
-                                <Pencil class="h-4 w-4" />
+                                <Pencil class="h-3.5 w-3.5" />
                             </Button>
-                            <Button type="button" size="icon" variant="destructive" class="h-8 w-8 rounded-full" @click="deleteWord(word)">
-                                <Trash2 class="h-4 w-4" />
+                            <Button
+                                v-if="word.is_builtin && word.is_hidden"
+                                type="button"
+                                size="icon"
+                                class="h-7 w-7 rounded-full border border-slate-300 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
+                                title="Show word"
+                                @click="unhideWord(word)"
+                            >
+                                <Eye class="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                                v-else-if="word.is_builtin"
+                                type="button"
+                                size="icon"
+                                class="h-7 w-7 rounded-full border border-slate-300 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
+                                title="Hide word"
+                                @click="hideWord(word)"
+                            >
+                                <EyeOff class="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                                v-else
+                                type="button"
+                                size="icon"
+                                variant="destructive"
+                                class="h-7 w-7 rounded-full"
+                                title="Delete word"
+                                @click="deleteWord(word)"
+                            >
+                                <Trash2 class="h-3.5 w-3.5" />
                             </Button>
                         </div>
                     </div>
                 </template>
                 <template v-else>
                     <button
-                        v-for="word in words"
+                        v-for="word in playableWords"
                         :key="`word-${word.id}`"
                         type="button"
-                        class="talkie-word flex min-h-28 touch-manipulation flex-col items-center justify-center gap-2 rounded-3xl border-2 px-3 py-4 text-center text-xl font-extrabold transition active:scale-95 select-none"
+                        class="talkie-word talkie-tile touch-manipulation border-2 transition active:scale-95 select-none"
                         :style="wordAccentStyle(word.label)"
                         @pointerdown="onWordPointerDown(word)"
                         @pointerup="onWordPointerUp(word, $event)"
@@ -503,6 +605,7 @@ onBeforeUnmount(() => {
                     >
                         <BoardWordIcon
                             :label="word.label"
+                            :size="18"
                             :icon-class="wordAccentStyle(word.label) ? undefined : 'opacity-70'"
                         />
                         {{ word.label }}

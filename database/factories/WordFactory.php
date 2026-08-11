@@ -23,6 +23,8 @@ class WordFactory extends Factory
             'label' => fake()->unique()->word(),
             'speak_text' => null,
             'sort_order' => fake()->numberBetween(1, 20),
+            'is_builtin' => false,
+            'is_hidden' => false,
         ];
     }
 
@@ -30,6 +32,14 @@ class WordFactory extends Factory
     {
         return $this->state(fn () => [
             'user_id' => null,
+            'is_builtin' => true,
+        ]);
+    }
+
+    public function builtin(): static
+    {
+        return $this->state(fn () => [
+            'is_builtin' => true,
         ]);
     }
 
