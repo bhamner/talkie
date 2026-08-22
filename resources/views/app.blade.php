@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
+        @if (filled($ga4Id = config('services.ga4.id')))
+            <script async src="https://www.googletagmanager.com/gtag/js?id={{ urlencode($ga4Id) }}"></script>
+            <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', @json($ga4Id));
+            </script>
+        @endif
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 

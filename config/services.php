@@ -56,4 +56,8 @@ return [
         'private_key' => env('APPLE_PRIVATE_KEY'),
     ],
 
+    'ga4' => [
+        'id' => env('GA4_ID'),
+    ],
+
 ];
