@@ -6,6 +6,10 @@ test('legal pages are public and use the talkie.kids website', function (string 
         ->assertSee($heading, false)
         ->assertSee('talkie.kids', false)
         ->assertDontSee('hamnercreative.com', false)
+        ->assertDontSee('2052422057', false)
+        ->assertDontSee('3935 Edgebrook', false)
+        ->assertDontSee('Northport', false)
+        ->assertDontSee('<strong>Hamner Creative </strong>', false)
         ->assertSee(route('privacy'), false)
         ->assertSee(route('terms'), false)
         ->assertSee(route('cookies'), false);
