@@ -42,26 +42,25 @@ class BoardTemplateSeeder extends Seeder
             'and', 'or', 'but', 'so', 'because', 'if', 'while', 'than', 'then', 'also', 'too', 'as',
         ]);
 
-        $where = $this->menu('Where', null, 2);
-        $this->words($where, [
+        $whereWhen = $this->menu('Where & when', null, 2);
+        $this->words($whereWhen, [
             'to', 'from', 'for', 'of', 'at', 'by', 'with', 'about', 'through', 'over', 'up', 'down', 'around',
-            'away', 'inside', 'before', 'after',
+            'away', 'inside', 'before', 'after', 'sometimes', 'somewhere',
         ]);
 
         $canWill = $this->menu('Can & will', null, 3);
         $this->words($canWill, [
-            'can', "can't", 'could', "couldn't", "won't", 'would', 'may', 'must', 'let', "let's",
+            'can', 'could', 'would', 'may', 'must', 'let',
         ]);
 
         $doDid = $this->menu('Do & did', null, 4);
         $this->words($doDid, [
-            'do', 'does', "don't", "doesn't", 'did', "didn't", 'be', 'are', "aren't", 'was', "wasn't", 'were',
-            'have', 'has', 'had', "haven't", "isn't", 'being',
+            'do', 'does', 'did', 'be', 'are', 'was', 'were', 'have', 'has', 'had',
         ]);
 
         $thisThat = $this->menu('This & that', null, 5);
         $this->words($thisThat, [
-            'this', 'these', 'those', 'there', "there's", "here's", "that's", "it's", 'same', 'other', 'another',
+            'this', 'these', 'those', 'there', 'same', 'other', 'another', 'something', 'everything',
         ]);
 
         $amount = $this->menu('Amount', null, 6);
@@ -71,25 +70,19 @@ class BoardTemplateSeeder extends Seeder
 
         $really = $this->menu('Really', null, 7);
         $this->words($really, [
-            'really', 'very', 'just', 'even', 'not', 'oh', 'way', 'together', 'like', 'kind',
+            'really', 'very', 'just', 'even', 'oh', 'way', 'together', 'like', 'kind',
         ]);
 
-        $pronouns = $this->menu('Pronouns', null, 8);
-        $this->words($pronouns, [
-            'me', 'myself', 'he', "he's", 'him', 'his', 'she', "she's", 'her', 'we', "we'll", "we're", 'us', 'our',
-            'ours', 'they', "they'll", "they're", 'them', 'their', 'your', 'yours', "I'm", "I'll", "you'll", "you're",
-            'somebody', 'someone', 'something', 'sometimes', 'somewhere', 'everybody', 'everything',
-        ]);
-
-        $questions = $this->menu('Questions', null, 9);
+        $questions = $this->menu('Questions', null, 8);
         $this->words($questions, [
-            'how', 'where', "where's", 'when', 'which', 'who', 'why', "what's",
+            'how', 'where', 'when', 'which', 'who', 'why',
         ]);
 
-        $food = $this->menu('Food', null, 10);
+        $food = $this->menu('Food', null, 9);
         $this->words($food, [
-            'hungry', 'eat', 'snack', 'breakfast', 'lunch', 'dinner', 'cookie', 'candy', 'corn', 'bean',
-            'bite', 'cup',
+            'hungry', 'thirsty', 'eat', 'snack', 'breakfast', 'lunch', 'dinner', 'meal', 'food', 'cook',
+            'cookie', 'candy', 'corn', 'bean', 'bite', 'cup', 'drink', 'apple', 'pie', 'banana',
+            'chicken', 'cheese', 'cake',
         ]);
         $this->phrases($food, [
             'I am hungry',
@@ -103,7 +96,7 @@ class BoardTemplateSeeder extends Seeder
         ]);
 
         $drinks = $this->menu('Drinks', $food, 1);
-        $this->words($drinks, ['water', 'juice', 'milk', 'coffee', 'tea', 'drink']);
+        $this->words($drinks, ['water', 'juice', 'milk', 'coffee', 'tea']);
         $this->phrases($drinks, [
             'I want water',
             'I want juice',
@@ -111,7 +104,7 @@ class BoardTemplateSeeder extends Seeder
             'Can I have a drink?',
         ]);
 
-        $feelings = $this->menu('Feelings', null, 11);
+        $feelings = $this->menu('Feelings', null, 10);
         $this->words($feelings, ['happy', 'sad', 'tired', 'mad', 'scared', 'hurt', 'okay']);
         $this->phrases($feelings, [
             'I am happy',
@@ -124,12 +117,14 @@ class BoardTemplateSeeder extends Seeder
             'I do not feel well',
         ]);
 
-        $people = $this->menu('People', null, 12);
-        $this->words($people, [
-            'mom', 'mommy', 'dad', 'baby', 'boy', 'girl', 'guys', 'man', 'friend', 'teacher', 'doctor',
-            'people', 'name',
+        $friends = $this->menu('Friends', null, 11);
+        $this->words($friends, [
+            'mom', 'dad', 'baby', 'boy', 'girl', 'man', 'woman', 'friend', 'teacher', 'doctor',
+            'people', 'name', 'hi', 'hello', 'bye', 'me', 'myself',
+            'he', 'him', 'his', 'she', 'her', 'we', 'us', 'our',
+            'they', 'them', 'their', 'your', 'somebody', 'someone', 'everybody',
         ]);
-        $this->phrases($people, [
+        $this->phrases($friends, [
             'I want my mom',
             'I want my dad',
             'Where is my friend?',
@@ -137,10 +132,9 @@ class BoardTemplateSeeder extends Seeder
             'I need the doctor',
         ]);
 
-        $places = $this->menu('Places', null, 13);
+        $places = $this->menu('Places', null, 12);
         $this->words($places, [
-            'home', 'school', 'outside', 'bathroom', 'store', 'park', 'house', 'room', 'door', 'hill', 'side',
-            'middle', 'top',
+            'school', 'outside', 'bathroom', 'store', 'park', 'beach', 'hill', 'side', 'middle', 'top',
         ]);
         $this->phrases($places, [
             'I want to go home',
@@ -148,15 +142,16 @@ class BoardTemplateSeeder extends Seeder
             'I want to go outside',
             'I need the bathroom',
             'I want to go to the park',
+            'I want to go to the beach',
         ]);
 
-        $actions = $this->menu('Actions', null, 14);
+        $actions = $this->menu('Actions', null, 13);
         $this->words($actions, [
-            'stop', 'come', 'look', 'wait', 'play', 'sleep', 'back', 'bet', 'buy', 'call', 'came',
-            'catch', 'cut', 'fall', 'find', 'fixed', 'fly', 'found', 'get', 'give',
-            'gonna', 'hear', 'hold', 'jump', 'know', 'lift', 'made', 'make',
+            'stop', 'come', 'look', 'wait', 'play', 'sleep', 'bet', 'buy', 'call', 'came',
+            'catch', 'cut', 'fall', 'find', 'fix', 'fly', 'found', 'get', 'give',
+            'going', 'hear', 'hold', 'jump', 'know', 'lift', 'made', 'make',
             'mean', 'move', 'open', 'paint', 'pick', 'push', 'put', 'remember', 'ride', 'run', 'said', 'saw', 'say',
-            'see', 'show', 'shut', 'sit', 'swing', 'tell', 'threw', 'try', 'turn', 'use',
+            'see', 'show', 'shut', 'sit', 'swing', 'tell', 'throw', 'threw', 'try', 'turn', 'use',
             'watch', 'went',
         ]);
         $this->phrases($actions, [
@@ -168,39 +163,42 @@ class BoardTemplateSeeder extends Seeder
             'Please wait',
         ]);
 
-        $describing = $this->menu('Describing', null, 15);
+        $describing = $this->menu('Describing', null, 14);
         $this->words($describing, [
-            'bad', 'better', 'big', 'different', 'first', 'good', 'great', 'high', 'hot', 'last', 'little', 'long',
-            'messy', 'new', 'nice', 'old', 'ready', 'right', 'well', 'whole',
+            'bad', 'better', 'big', 'small', 'different', 'first', 'good', 'great', 'high', 'hot', 'last', 'little', 'long',
+            'messy', 'new', 'nice', 'old', 'ready', 'right', 'left', 'well', 'whole',
         ]);
 
-        $toys = $this->menu('Toys', null, 16);
-        $this->words($toys, ['ball', 'toys', 'tape', 'piece', 'thing', 'stuff']);
+        $stuff = $this->menu('Stuff', null, 15);
+        $this->words($stuff, ['ball', 'toy', 'tape', 'piece', 'thing']);
 
-        $furniture = $this->menu('Furniture', null, 17);
-        $this->words($furniture, ['bed', 'chair', 'box']);
+        $home = $this->menu('Home', null, 16);
+        $this->words($home, [
+            'home', 'house', 'room', 'door', 'bed', 'chair', 'table', 'couch', 'sink', 'toilet',
+        ]);
 
-        $vehicles = $this->menu('Vehicles', null, 18);
-        $this->words($vehicles, ['car']);
+        $vehicles = $this->menu('Vehicles', null, 17);
+        $this->words($vehicles, [
+            'car', 'truck', 'motorcycle', 'bicycle', 'bus', 'golf cart',
+        ]);
 
-        $nature = $this->menu('Nature', null, 19);
+        $nature = $this->menu('Nature', null, 18);
         $this->words($nature, ['tree', 'leaf', 'fire']);
 
-        $time = $this->menu('Time', null, 20);
+        $time = $this->menu('Time', null, 19);
         $this->words($time, [
-            'day', 'time', 'today', 'again', 'already', 'almost', 'never', 'next', 'still', 'yet', 'maybe',
+            'day', 'night', 'time', 'today', 'again', 'already', 'almost', 'never', 'next', 'still', 'yet', 'maybe',
         ]);
 
-        $animals = $this->menu('Animals', null, 21);
+        $animals = $this->menu('Animals', null, 20);
         $this->words($animals, ['ant', 'bird', 'bug', 'dog', 'duck', 'horse', 'turtle']);
 
-        $body = $this->menu('Body', null, 22);
-        $this->words($body, ['face', 'finger', 'foot', 'hair', 'hand', 'head']);
+        $body = $this->menu('Body', null, 21);
+        $this->words($body, [
+            'face', 'finger', 'foot', 'hair', 'hand', 'head', 'shoulder', 'back', 'muscle', 'leg',
+        ]);
 
-        $social = $this->menu('Social', null, 23);
-        $this->words($social, ['hi', 'hello', 'bye']);
-
-        $colors = $this->menu('Colors', null, 24);
+        $colors = $this->menu('Colors', null, 22);
         $this->words($colors, [
             'red',
             'orange',
@@ -220,7 +218,7 @@ class BoardTemplateSeeder extends Seeder
             'Can we use red?',
         ]);
 
-        $shapes = $this->menu('Shapes', null, 25);
+        $shapes = $this->menu('Shapes', null, 23);
         $this->words($shapes, [
             'circle',
             'square',
@@ -239,7 +237,7 @@ class BoardTemplateSeeder extends Seeder
             'I like that shape',
         ]);
 
-        $numbers = $this->menu('Numbers', null, 26);
+        $numbers = $this->menu('Numbers', null, 24);
         $this->wordsWithSpeech($numbers, [
             ['0', 'zero'],
             ['1', 'one'],
@@ -269,6 +267,8 @@ class BoardTemplateSeeder extends Seeder
             'parent_id' => $parent?->id,
             'name' => $name,
             'sort_order' => $sortOrder,
+            'is_builtin' => true,
+            'is_hidden' => false,
         ]);
     }
 

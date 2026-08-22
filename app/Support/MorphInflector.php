@@ -58,8 +58,18 @@ class MorphInflector
             'ing' => self::ing($trimmed, $lower),
             'ed' => self::ed($trimmed, $lower),
             'ly' => self::ly($trimmed, $lower),
+            'possessive' => self::possessive($trimmed, $lower),
             default => $trimmed,
         };
+    }
+
+    private static function possessive(string $trimmed, string $lower): string
+    {
+        if (str_ends_with($lower, 's')) {
+            return $trimmed."'";
+        }
+
+        return $trimmed."'s";
     }
 
     private static function plural(string $trimmed, string $lower): string

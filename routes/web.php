@@ -48,6 +48,8 @@ Route::middleware('auth')->group(function () {
         Route::post('menus', [MenuController::class, 'store'])->name('menus.store');
         Route::put('menus/{menu}', [MenuController::class, 'update'])->name('menus.update');
         Route::delete('menus/{menu}', [MenuController::class, 'destroy'])->name('menus.destroy');
+        Route::post('menus/{menu}/hide', [MenuController::class, 'hide'])->name('menus.hide');
+        Route::post('menus/{menu}/unhide', [MenuController::class, 'unhide'])->name('menus.unhide');
         Route::post('menus/{menu}/move', [MenuController::class, 'move'])->name('menus.move');
     });
 

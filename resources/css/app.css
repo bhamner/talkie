@@ -120,3 +120,22 @@ html {
 .talkie-tile {
     @apply flex min-h-[4.5rem] flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-center text-sm font-extrabold sm:min-h-20 sm:text-base;
 }
+
+.talkie-tile-highlight {
+    @apply relative z-10 scale-105 ring-4 ring-amber-400 ring-offset-2;
+    animation: talkie-tile-pulse 1.2s ease-in-out 2;
+}
+
+.talkie-tile-dimmed {
+    @apply opacity-35;
+}
+
+@keyframes talkie-tile-pulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgb(251 191 36 / 0.55);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgb(251 191 36 / 0);
+    }
+}

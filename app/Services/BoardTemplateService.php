@@ -26,6 +26,7 @@ class BoardTemplateService
                 return;
             }
 
+            $this->renameObsoleteMenus($user);
             $this->syncMissingTopLevelMenus($user);
             $this->syncMissingPhrases($user);
         });
@@ -51,6 +52,289 @@ class BoardTemplateService
             ->whereNull('parent_id')
             ->where('name', 'Small words')
             ->update(['name' => 'Where']);
+
+        Menu::query()
+            ->forUser($user)
+            ->whereNull('parent_id')
+            ->where('name', 'Where')
+            ->update(['name' => 'Where & when']);
+
+        Menu::query()
+            ->forUser($user)
+            ->whereNull('parent_id')
+            ->where('name', 'Toys')
+            ->update(['name' => 'Stuff']);
+
+        Menu::query()
+            ->forUser($user)
+            ->whereNull('parent_id')
+            ->where('name', 'Furniture')
+            ->update(['name' => 'Home']);
+
+        $friendsExists = Menu::query()
+            ->forUser($user)
+            ->whereNull('parent_id')
+            ->where('name', 'Friends')
+            ->exists();
+
+        if (! $friendsExists) {
+            Menu::query()
+                ->forUser($user)
+                ->whereNull('parent_id')
+                ->where('name', 'People')
+                ->update(['name' => 'Friends']);
+        }
+
+        $friendsMenu = Menu::query()
+            ->forUser($user)
+            ->whereNull('parent_id')
+            ->where('name', 'Friends')
+            ->first();
+
+        $socialMenu = Menu::query()
+            ->forUser($user)
+            ->whereNull('parent_id')
+            ->where('name', 'Social')
+            ->first();
+
+        if ($friendsMenu !== null && $socialMenu !== null) {
+            Word::query()
+                ->forUser($user)
+                ->where('menu_id', $socialMenu->id)
+                ->update(['menu_id' => $friendsMenu->id]);
+
+            Phrase::query()
+                ->forUser($user)
+                ->where('menu_id', $socialMenu->id)
+                ->update(['menu_id' => $friendsMenu->id]);
+
+            $socialMenu->delete();
+        }
+
+        $this->migratePronounsFolder($user, $friendsMenu);
+        $this->migrateHomePlaceWords($user);
+        $this->renameBuiltinWordLabels($user);
+        $this->deleteObsoleteBuiltinWords($user);
+        $this->syncMissingHomeWords($user);
+
+        $this->syncMissingMenuWords($user, 'Friends');
+        $this->syncMissingMenuWords($user, 'Home');
+        $this->syncMissingMenuWords($user, 'Stuff');
+        $this->syncMissingMenuWords($user, 'Where & when');
+        $this->syncMissingMenuWords($user, 'Body');
+        $this->syncMissingMenuWords($user, 'Vehicles');
+        $this->syncMissingMenuWords($user, 'Time');
+        $this->syncMissingMenuWords($user, 'Food');
+        $this->syncMissingMenuWords($user, 'Describing');
+        $this->syncMissingMenuWords($user, 'Actions');
+        $this->syncMissingMenuWords($user, 'Places');
+    }
+
+    private function migratePronounsFolder(User $user, ?Menu $friendsMenu): void
+    {
+        $pronounsMenu = Menu::query()
+            ->forUser($user)
+            ->whereNull('parent_id')
+            ->where('name', 'Pronouns')
+            ->first();
+
+        if ($pronounsMenu === null) {
+            return;
+        }
+
+        $thisThatMenu = Menu::query()
+            ->forUser($user)
+            ->whereNull('parent_id')
+            ->where('name', 'This & that')
+            ->first();
+
+        $whereWhenMenu = Menu::query()
+            ->forUser($user)
+            ->whereNull('parent_id')
+            ->where('name', 'Where & when')
+            ->first();
+
+        $toFriends = [
+            'me', 'myself', 'he', 'him', 'his', 'she', 'her', 'we', 'us', 'our',
+            'they', 'them', 'their', 'your', 'somebody', 'someone', 'everybody',
+        ];
+        $toThisThat = ['something', 'everything'];
+        $toWhereWhen = ['sometimes', 'somewhere'];
+
+        if ($friendsMenu !== null) {
+            Word::query()
+                ->forUser($user)
+                ->where('menu_id', $pronounsMenu->id)
+                ->whereIn('label', $toFriends)
+                ->update(['menu_id' => $friendsMenu->id]);
+        }
+
+        if ($thisThatMenu !== null) {
+            Word::query()
+                ->forUser($user)
+                ->where('menu_id', $pronounsMenu->id)
+                ->whereIn('label', $toThisThat)
+                ->update(['menu_id' => $thisThatMenu->id]);
+        }
+
+        if ($whereWhenMenu !== null) {
+            Word::query()
+                ->forUser($user)
+                ->where('menu_id', $pronounsMenu->id)
+                ->whereIn('label', $toWhereWhen)
+                ->update(['menu_id' => $whereWhenMenu->id]);
+        }
+
+        Word::query()->forUser($user)->where('menu_id', $pronounsMenu->id)->delete();
+        Phrase::query()->forUser($user)->where('menu_id', $pronounsMenu->id)->delete();
+        $pronounsMenu->delete();
+    }
+
+    private function renameBuiltinWordLabels(User $user): void
+    {
+        $renames = [
+            'gonna' => 'going',
+            'fixed' => 'fix',
+            'toys' => 'toy',
+            "what's" => 'what',
+        ];
+
+        foreach ($renames as $from => $to) {
+            Word::query()
+                ->forUser($user)
+                ->where('is_builtin', true)
+                ->where('label', $from)
+                ->update(['label' => $to]);
+        }
+    }
+
+    private function deleteObsoleteBuiltinWords(User $user): void
+    {
+        Word::query()
+            ->forUser($user)
+            ->where('is_builtin', true)
+            ->whereIn('label', [
+                'mommy', 'guys', 'box', 'stuff',
+                "can't", "couldn't", "won't", "let's",
+                "don't", "doesn't", "didn't", "aren't", "wasn't", "haven't", "isn't", 'being',
+                "there's", "here's", "that's", "it's",
+                "where's",
+                "I'm", "I'll", "you'll", "you're", "he's", "she's", "we'll", "we're", "they'll", "they're",
+                'ours', 'yours',
+            ])
+            ->delete();
+
+        Word::query()
+            ->forUser($user)
+            ->where('is_builtin', true)
+            ->where('label', 'not')
+            ->whereHas('menu', fn ($menu) => $menu->where('name', 'Really'))
+            ->delete();
+    }
+
+    private function migrateHomePlaceWords(User $user): void
+    {
+        $homeMenu = Menu::query()
+            ->forUser($user)
+            ->whereNull('parent_id')
+            ->where('name', 'Home')
+            ->first();
+
+        $placesMenu = Menu::query()
+            ->forUser($user)
+            ->whereNull('parent_id')
+            ->where('name', 'Places')
+            ->first();
+
+        if ($homeMenu === null || $placesMenu === null) {
+            return;
+        }
+
+        Word::query()
+            ->forUser($user)
+            ->where('menu_id', $placesMenu->id)
+            ->whereIn('label', ['home', 'house', 'room', 'door'])
+            ->update(['menu_id' => $homeMenu->id]);
+    }
+
+    private function syncMissingHomeWords(User $user): void
+    {
+        $existingLabels = Word::query()
+            ->forUser($user)
+            ->whereNull('menu_id')
+            ->pluck('label')
+            ->map(fn (string $label) => strtolower($label))
+            ->all();
+
+        $templateWords = Word::query()
+            ->template()
+            ->whereNull('menu_id')
+            ->orderBy('sort_order')
+            ->get();
+
+        foreach ($templateWords as $templateWord) {
+            if (in_array(strtolower($templateWord->label), $existingLabels, true)) {
+                continue;
+            }
+
+            Word::create([
+                'user_id' => $user->id,
+                'menu_id' => null,
+                'label' => $templateWord->label,
+                'speak_text' => $templateWord->speak_text,
+                'sort_order' => $templateWord->sort_order,
+                'is_builtin' => true,
+                'is_hidden' => false,
+            ]);
+        }
+    }
+
+    private function syncMissingMenuWords(User $user, string $menuName): void
+    {
+        $userMenu = Menu::query()
+            ->forUser($user)
+            ->whereNull('parent_id')
+            ->where('name', $menuName)
+            ->first();
+
+        $templateMenu = Menu::query()
+            ->template()
+            ->whereNull('parent_id')
+            ->where('name', $menuName)
+            ->first();
+
+        if ($userMenu === null || $templateMenu === null) {
+            return;
+        }
+
+        $existingLabels = Word::query()
+            ->forUser($user)
+            ->where('menu_id', $userMenu->id)
+            ->pluck('label')
+            ->map(fn (string $label) => strtolower($label))
+            ->all();
+
+        $templateWords = Word::query()
+            ->template()
+            ->where('menu_id', $templateMenu->id)
+            ->orderBy('sort_order')
+            ->get();
+
+        foreach ($templateWords as $templateWord) {
+            if (in_array(strtolower($templateWord->label), $existingLabels, true)) {
+                continue;
+            }
+
+            Word::create([
+                'user_id' => $user->id,
+                'menu_id' => $userMenu->id,
+                'label' => $templateWord->label,
+                'speak_text' => $templateWord->speak_text,
+                'sort_order' => $templateWord->sort_order,
+                'is_builtin' => true,
+                'is_hidden' => false,
+            ]);
+        }
     }
 
     private function ensureSettings(User $user): void
@@ -81,6 +365,8 @@ class BoardTemplateService
                 'parent_id' => null,
                 'name' => $templateMenu->name,
                 'sort_order' => $templateMenu->sort_order,
+                'is_builtin' => true,
+                'is_hidden' => false,
             ]);
 
             $menuIdMap[$templateMenu->id] = $copy->id;
@@ -231,6 +517,8 @@ class BoardTemplateService
             'parent_id' => $parentId,
             'name' => $templateMenu->name,
             'sort_order' => $templateMenu->sort_order,
+            'is_builtin' => true,
+            'is_hidden' => false,
         ]);
 
         $templateWords = Word::query()

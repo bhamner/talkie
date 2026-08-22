@@ -1,4 +1,4 @@
-export type MorphKind = 'plural' | 'ing' | 'ed' | 'ly';
+export type MorphKind = 'plural' | 'ing' | 'ed' | 'ly' | 'possessive';
 
 export type MorphWord = {
     label: string;
@@ -15,6 +15,7 @@ export const MORPH_TILES: { kind: MorphKind; label: string }[] = [
     { kind: 'ing', label: 'ing' },
     { kind: 'ed', label: 'ed' },
     { kind: 'ly', label: 'ly' },
+    { kind: 'possessive', label: "'s" },
 ];
 
 const pluralExceptions: Record<string, string> = {
@@ -139,6 +140,14 @@ export function applyMorph(base: string, kind: MorphKind): string {
             result = `${trimmed}ally`;
         } else {
             result = `${trimmed}ly`;
+        }
+    }
+
+    if (kind === 'possessive') {
+        if (lower.endsWith('s')) {
+            result = `${trimmed}'`;
+        } else {
+            result = `${trimmed}'s`;
         }
     }
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Menu;
 use App\Models\Phrase;
 use App\Models\User;
 use App\Models\Word;
@@ -20,13 +21,15 @@ function visibilityUser(): User
     return $user;
 }
 
-test('copied template words and phrases are marked built-in', function () {
+test('copied template words phrases and folders are marked built-in', function () {
     $this->seed(BoardTemplateSeeder::class);
     $user = visibilityUser();
 
     expect(Word::query()->forUser($user)->where('label', 'want')->value('is_builtin'))->toBeTrue()
         ->and(Phrase::query()->forUser($user)->where('text', 'I need help')->value('is_builtin'))->toBeTrue()
-        ->and(Word::query()->forUser($user)->where('label', 'want')->value('is_hidden'))->toBeFalse();
+        ->and(Menu::query()->forUser($user)->where('name', 'Food')->value('is_builtin'))->toBeTrue()
+        ->and(Word::query()->forUser($user)->where('label', 'want')->value('is_hidden'))->toBeFalse()
+        ->and(Menu::query()->forUser($user)->where('name', 'Food')->value('is_hidden'))->toBeFalse();
 });
 
 test('hidden words are omitted from the playable board payload visibility flag', function () {
@@ -69,6 +72,54 @@ test('authenticated users can hide and unhide built-in phrases', function () {
         ->assertRedirect('/board');
 
     expect($phrase->fresh()->is_hidden)->toBeFalse();
+});
+
+test('authenticated users can hide and unhide built-in folders', function () {
+    $this->seed(BoardTemplateSeeder::class);
+    $user = visibilityUser();
+
+    $menu = Menu::query()->forUser($user)->whereNull('parent_id')->where('name', 'Food')->firstOrFail();
+
+    $this->actingAs($user)
+        ->from('/board')
+        ->post(route('menus.hide', $menu))
+        ->assertRedirect('/board');
+
+    expect($menu->fresh()->is_hidden)->toBeTrue();
+
+    $this->actingAs($user)
+        ->from('/board')
+        ->delete(route('menus.destroy', $menu))
+        ->assertForbidden();
+
+    expect(Menu::query()->whereKey($menu->id)->exists())->toBeTrue();
+
+    $this->actingAs($user)
+        ->get('/board/'.$menu->id)
+        ->assertNotFound();
+
+    $this->actingAs($user)
+        ->from('/board')
+        ->post(route('menus.unhide', $menu))
+        ->assertRedirect('/board');
+
+    expect($menu->fresh()->is_hidden)->toBeFalse();
+});
+
+test('hidden folders remain in the board payload for edit mode', function () {
+    $this->seed(BoardTemplateSeeder::class);
+    $user = visibilityUser();
+
+    $menu = Menu::query()->forUser($user)->whereNull('parent_id')->where('name', 'Food')->firstOrFail();
+    $menu->update(['is_hidden' => true]);
+
+    $this->actingAs($user)
+        ->get('/board')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('board/Show')
+            ->where('menus', fn ($menus) => collect($menus)->contains(fn ($item) => $item['name'] === 'Food' && $item['is_hidden'] === true))
+        );
 });
 
 test('authenticated users can delete custom phrases', function () {

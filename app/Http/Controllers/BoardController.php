@@ -26,6 +26,8 @@ class BoardController extends Controller
             } else {
                 abort_unless($menu->user_id === null, 404);
             }
+
+            abort_if($menu->is_hidden, 404);
         }
 
         $menusQuery = Menu::query()->where('parent_id', $menu?->id)->orderBy('sort_order');
@@ -42,7 +44,7 @@ class BoardController extends Controller
             $phrasesQuery->template();
         }
 
-        $menus = $menusQuery->get(['id', 'name', 'parent_id', 'sort_order']);
+        $menus = $menusQuery->get(['id', 'name', 'parent_id', 'sort_order', 'is_builtin', 'is_hidden']);
         $words = $wordsQuery->get(['id', 'label', 'speak_text', 'menu_id', 'sort_order', 'is_builtin', 'is_hidden']);
         $phrases = $phrasesQuery->get(['id', 'text', 'menu_id', 'sort_order', 'is_builtin', 'is_hidden']);
 
@@ -83,13 +85,33 @@ class BoardController extends Controller
             ]);
         }
 
+        $searchMenusQuery = Menu::query()->orderBy('sort_order');
+        $searchWordsQuery = Word::query()->orderBy('sort_order');
+
+        if ($user) {
+            $searchMenusQuery->forUser($user)->visible();
+            $searchWordsQuery->forUser($user)->visible();
+        } else {
+            $searchMenusQuery->template()->visible();
+            $searchWordsQuery->template()->visible();
+        }
+
+        $searchMenus = $searchMenusQuery->get(['id', 'name', 'parent_id']);
+        $menuNames = $searchMenus->pluck('name', 'id');
+
         return Inertia::render('board/Show', [
             'menu' => $menu ? [
                 'id' => $menu->id,
                 'name' => $menu->name,
                 'parent_id' => $menu->parent_id,
             ] : null,
-            'menus' => $menus,
+            'menus' => $menus->map(fn (Menu $child) => [
+                'id' => $child->id,
+                'name' => $child->name,
+                'parent_id' => $child->parent_id,
+                'is_builtin' => $child->is_builtin,
+                'is_hidden' => $child->is_hidden,
+            ]),
             'words' => $words->map(fn (Word $word) => [
                 'id' => $word->id,
                 'label' => $word->label,
@@ -106,6 +128,20 @@ class BoardController extends Controller
                 'id' => $user?->settings?->voice_id,
                 'uri' => $user?->settings?->voice_uri,
                 'name' => $user?->settings?->voice_name,
+            ],
+            'highlight' => $request->query('highlight'),
+            'search_index' => [
+                'menus' => $searchMenus->map(fn (Menu $item) => [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'parent_id' => $item->parent_id,
+                ])->values()->all(),
+                'words' => $searchWordsQuery->get(['id', 'label', 'menu_id'])->map(fn (Word $word) => [
+                    'id' => $word->id,
+                    'label' => $word->label,
+                    'menu_id' => $word->menu_id,
+                    'menu_name' => $word->menu_id ? ($menuNames[$word->menu_id] ?? 'Home') : 'Home',
+                ])->values()->all(),
             ],
         ]);
     }

@@ -30,6 +30,8 @@ class MenuController extends Controller
             'parent_id' => $parent?->id,
             'name' => trim($validated['name']),
             'sort_order' => $nextSortOrder,
+            'is_builtin' => false,
+            'is_hidden' => false,
         ]);
 
         return back();
@@ -49,10 +51,31 @@ class MenuController extends Controller
     public function destroy(Request $request, Menu $menu): RedirectResponse
     {
         abort_unless($menu->user_id === $request->user()->id, 404);
+        abort_if($menu->is_builtin, 403);
 
         DB::transaction(function () use ($menu): void {
             $this->deleteMenuSubtree($menu);
         });
+
+        return back();
+    }
+
+    public function hide(Request $request, Menu $menu): RedirectResponse
+    {
+        abort_unless($menu->user_id === $request->user()->id, 404);
+        abort_unless($menu->is_builtin, 403);
+
+        $menu->update(['is_hidden' => true]);
+
+        return back();
+    }
+
+    public function unhide(Request $request, Menu $menu): RedirectResponse
+    {
+        abort_unless($menu->user_id === $request->user()->id, 404);
+        abort_unless($menu->is_builtin, 403);
+
+        $menu->update(['is_hidden' => false]);
 
         return back();
     }

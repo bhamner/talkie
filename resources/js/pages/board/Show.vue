@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import BoardMenuDialog from '@/components/BoardMenuDialog.vue';
+import BoardMenuIcon from '@/components/BoardMenuIcon.vue';
 import BoardWordDialog from '@/components/BoardWordDialog.vue';
 import BoardWordIcon from '@/components/BoardWordIcon.vue';
 import PhrasesPanel from '@/components/PhrasesPanel.vue';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useBoardEditMode } from '@/composables/useBoardEditMode';
 import { useSpeech } from '@/composables/useSpeech';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -22,40 +24,29 @@ import {
     ArrowLeft,
     ArrowRight,
     BookOpen,
-    Car,
     Check,
-    Clock,
     Delete,
     Eye,
     EyeOff,
-    FolderOpen,
     FolderPlus,
-    Hash,
-    Heart,
     Home,
-    Link2,
-    MapPin,
-    MessageCircle,
-    Palette,
     Pencil,
     Plus,
-    Shapes,
-    Sofa,
+    Search,
     Sparkles,
-    TreePine,
     Trash2,
-    Users,
-    Utensils,
     Volume2,
-    Zap,
+    X,
 } from 'lucide-vue-next';
-import { computed, onBeforeUnmount, ref, type Component, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 type BoardMenu = {
     id: number;
     name: string;
     parent_id: number | null;
     sort_order?: number;
+    is_builtin?: boolean;
+    is_hidden?: boolean;
 };
 
 type BoardWord = {
@@ -79,6 +70,11 @@ type Ancestor = {
     name: string;
 };
 
+type SearchIndex = {
+    menus: { id: number; name: string; parent_id: number | null }[];
+    words: { id: number; label: string; menu_id: number | null; menu_name: string }[];
+};
+
 const props = defineProps<{
     menu: { id: number; name: string; parent_id: number | null } | null;
     menus: BoardMenu[];
@@ -89,6 +85,8 @@ const props = defineProps<{
     can_edit: boolean;
     preferred_name: string | null;
     voice: { id: string | null; uri: string | null; name: string | null };
+    highlight?: string | null;
+    search_index: SearchIndex;
 }>();
 
 const DOUBLE_TAP_MS = 280;
@@ -109,36 +107,6 @@ watch(
     },
 );
 
-const menuIcons: Record<string, Component> = {
-    Joiners: Link2,
-    Where: MapPin,
-    'Can & will': Zap,
-    'Do & did': Zap,
-    'This & that': MessageCircle,
-    Amount: Hash,
-    Really: Sparkles,
-    Pronouns: Users,
-    Questions: MessageCircle,
-    Food: Utensils,
-    Drinks: Utensils,
-    Feelings: Heart,
-    People: Users,
-    Places: MapPin,
-    Actions: Zap,
-    Describing: Palette,
-    Toys: Sparkles,
-    Furniture: Sofa,
-    Vehicles: Car,
-    Nature: TreePine,
-    Time: Clock,
-    Animals: Sparkles,
-    Body: Heart,
-    Social: MessageCircle,
-    Colors: Palette,
-    Shapes: Shapes,
-    Numbers: Hash,
-};
-
 const textToSpeak = (word: BoardWord) => word.speak_text?.trim() || word.label;
 
 const phraseText = computed(() => phraseSpeakText(phrase.value));
@@ -154,9 +122,141 @@ watch(
     { immediate: true },
 );
 
-const menuIcon = (name: string) => menuIcons[name] ?? FolderOpen;
-
 const playableWords = computed(() => props.words.filter((word) => !word.is_hidden));
+const playableMenus = computed(() => props.menus.filter((child) => !child.is_hidden));
+
+const searchQuery = ref('');
+const activeHighlight = ref(props.highlight?.trim() || '');
+
+const normalizedSearch = computed(() => searchQuery.value.trim().toLowerCase());
+const searchIsActive = computed(() => normalizedSearch.value.length > 0);
+
+const matchesSearch = (value: string): boolean => {
+    if (!searchIsActive.value) {
+        return false;
+    }
+
+    return value.trim().toLowerCase().includes(normalizedSearch.value);
+};
+
+const isHighlightedMenu = (menuId: number, name: string): boolean => {
+    if (activeHighlight.value === `menu-${menuId}`) {
+        return true;
+    }
+
+    return matchesSearch(name);
+};
+
+const isHighlightedWord = (wordId: number, label: string): boolean => {
+    if (activeHighlight.value === `word-${wordId}`) {
+        return true;
+    }
+
+    return matchesSearch(label);
+};
+
+const tileSearchClass = (highlighted: boolean): string | undefined => {
+    if (highlighted) {
+        return 'talkie-tile-highlight';
+    }
+
+    if (searchIsActive.value || activeHighlight.value) {
+        return 'talkie-tile-dimmed';
+    }
+
+    return undefined;
+};
+
+const currentMenuId = computed(() => props.menu?.id ?? null);
+
+const remoteSearchResults = computed(() => {
+    if (!searchIsActive.value) {
+        return [];
+    }
+
+    const query = normalizedSearch.value;
+    const results: { key: string; label: string; href: string; context: string }[] = [];
+
+    for (const item of props.search_index.menus) {
+        if (!item.name.toLowerCase().includes(query)) {
+            continue;
+        }
+
+        if (item.parent_id === currentMenuId.value) {
+            continue;
+        }
+
+        const href = item.parent_id
+            ? `/board/${item.parent_id}?highlight=menu-${item.id}`
+            : `/board?highlight=menu-${item.id}`;
+
+        results.push({
+            key: `menu-${item.id}`,
+            label: item.name,
+            href,
+            context: 'Folder',
+        });
+    }
+
+    for (const item of props.search_index.words) {
+        if (!item.label.toLowerCase().includes(query)) {
+            continue;
+        }
+
+        if (item.menu_id === currentMenuId.value) {
+            continue;
+        }
+
+        const href = item.menu_id
+            ? `/board/${item.menu_id}?highlight=word-${item.id}`
+            : `/board?highlight=word-${item.id}`;
+
+        results.push({
+            key: `word-${item.id}`,
+            label: item.label,
+            href,
+            context: item.menu_name,
+        });
+    }
+
+    return results.slice(0, 8);
+});
+
+const clearSearch = () => {
+    searchQuery.value = '';
+    activeHighlight.value = '';
+};
+
+watch(
+    () => props.highlight,
+    (value) => {
+        activeHighlight.value = value?.trim() || '';
+    },
+);
+
+watch(searchQuery, () => {
+    if (searchQuery.value.trim() !== '') {
+        activeHighlight.value = '';
+    }
+});
+
+const scrollHighlightIntoView = async () => {
+    await nextTick();
+    const el = document.querySelector('.talkie-tile-highlight');
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+
+onMounted(() => {
+    if (activeHighlight.value) {
+        void scrollHighlightIntoView();
+    }
+});
+
+watch(activeHighlight, (value) => {
+    if (value) {
+        void scrollHighlightIntoView();
+    }
+});
 
 const wordAccentStyle = (label: string) => {
     const color = boardWordColor(label);
@@ -309,11 +409,23 @@ const unhideWord = (word: BoardWord) => {
 };
 
 const deleteMenu = (menu: BoardMenu) => {
+    if (menu.is_builtin) {
+        return;
+    }
+
     if (!confirm(`Delete folder “${menu.name}” and everything inside it?`)) {
         return;
     }
 
     router.delete(route('menus.destroy', menu.id), boardMutation);
+};
+
+const hideMenu = (menu: BoardMenu) => {
+    router.post(route('menus.hide', menu.id), {}, boardMutation);
+};
+
+const unhideMenu = (menu: BoardMenu) => {
+    router.post(route('menus.unhide', menu.id), {}, boardMutation);
 };
 
 const moveWord = (word: BoardWord, direction: 'up' | 'down') => {
@@ -335,11 +447,33 @@ onBeforeUnmount(() => {
     <Head :title="pageTitle" />
 
     <AppLayout>
+        <template #headerActions>
+            <div class="relative w-40 sm:w-56">
+                <Search class="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Input
+                    v-model="searchQuery"
+                    type="search"
+                    placeholder="Find a word…"
+                    class="h-10 rounded-full border-sky-200 bg-white/90 pr-9 pl-9 text-sm font-semibold shadow-sm"
+                    aria-label="Search board"
+                />
+                <button
+                    v-if="searchQuery || activeHighlight"
+                    type="button"
+                    class="absolute top-1/2 right-2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                    aria-label="Clear search"
+                    @click="clearSearch"
+                >
+                    <X class="h-4 w-4" />
+                </button>
+            </div>
+        </template>
+
         <div class="flex h-full flex-1 flex-col gap-4">
             <div class="flex flex-wrap items-end justify-between gap-3">
                 <div v-if="menu">
                     <h1 class="flex items-center gap-2 text-3xl font-extrabold tracking-tight text-slate-800 sm:text-4xl">
-                        <component :is="menuIcon(menu.name)" class="h-8 w-8 text-orange-500" />
+                        <BoardMenuIcon :name="menu.name" :size="40" icon-class="text-orange-500" />
                         {{ menu.name }}
                     </h1>
                 </div>
@@ -356,6 +490,22 @@ onBeforeUnmount(() => {
                         </Link>
                     </template>
                 </div>
+            </div>
+
+            <div
+                v-if="remoteSearchResults.length"
+                class="flex flex-wrap items-center gap-2 rounded-2xl border-2 border-amber-200 bg-amber-50/95 px-3 py-2 shadow-sm"
+            >
+                <span class="text-xs font-bold uppercase tracking-wide text-amber-700">Also found</span>
+                <Link
+                    v-for="result in remoteSearchResults"
+                    :key="result.key"
+                    :href="result.href"
+                    class="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-white px-3 py-1 text-sm font-extrabold text-slate-800 shadow-sm hover:bg-amber-100"
+                >
+                    {{ result.label }}
+                    <span class="text-xs font-bold text-amber-700">{{ result.context }}</span>
+                </Link>
             </div>
 
             <div
@@ -382,77 +532,81 @@ onBeforeUnmount(() => {
                 </Button>
             </div>
 
-            <div
-                v-else
-                class="sticky top-[4.25rem] z-10 rounded-3xl border-2 border-sky-200 bg-white/90 p-4 shadow-md backdrop-blur"
-            >
-                <div class="mb-3 flex min-h-16 flex-wrap items-center gap-2">
-                    <span
-                        v-for="(token, index) in phrase"
-                        :key="`${token.word.id}-${index}-${token.morph ?? 'base'}`"
-                        class="talkie-word rounded-full border-2 px-4 py-2 text-base font-extrabold"
-                    >
-                        {{ displayLabel(token) }}
-                    </span>
-                    <span v-if="phrase.length === 0" class="inline-flex items-center gap-2 text-base font-semibold text-slate-500">
-                        <Sparkles class="h-4 w-4 text-amber-500" />
-                        Tap words to build a fun phrase
-                    </span>
+            <div v-else class="sticky top-[4.25rem] z-10 space-y-2">
+                <div class="rounded-3xl border-2 border-sky-200 bg-white/90 p-4 shadow-md backdrop-blur">
+                    <div class="mb-3 flex min-h-16 flex-wrap items-center gap-2">
+                        <span
+                            v-for="(token, index) in phrase"
+                            :key="`${token.word.id}-${index}-${token.morph ?? 'base'}`"
+                            class="talkie-word rounded-full border-2 px-4 py-2 text-base font-extrabold"
+                        >
+                            {{ displayLabel(token) }}
+                        </span>
+                        <span v-if="phrase.length === 0" class="inline-flex items-center gap-2 text-base font-semibold text-slate-500">
+                            <Sparkles class="h-4 w-4 text-amber-500" />
+                            Tap words to build a fun phrase
+                        </span>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex flex-wrap gap-2">
+                            <Button
+                                type="button"
+                                class="h-12 rounded-full px-5 text-base font-extrabold shadow-md"
+                                @click="speakPhrase"
+                                :disabled="phrase.length === 0"
+                            >
+                                <Volume2 class="mr-2 h-5 w-5" />
+                                Speak
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                class="h-12 rounded-full px-5 text-base font-extrabold"
+                                @click="removeLast"
+                                :disabled="phrase.length === 0"
+                            >
+                                <Delete class="mr-2 h-5 w-5" />
+                                Oops
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                class="h-12 rounded-full px-5 text-base font-extrabold"
+                                @click="clearPhrase"
+                                :disabled="phrase.length === 0"
+                            >
+                                Clear
+                            </Button>
+                        </div>
+                        <PhrasesPanel
+                            :phrases="phrases"
+                            :menu-id="menu?.id ?? null"
+                            :menu-name="menu?.name ?? 'Home'"
+                            :is-guest="is_guest"
+                            :speak="speak"
+                        />
+                    </div>
                 </div>
 
-                <div class="mb-3 flex flex-wrap items-center gap-2">
-                    <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Endings</span>
-                    <Button
-                        v-for="tile in MORPH_TILES"
-                        :key="tile.kind"
-                        type="button"
-                        size="sm"
-                        class="h-10 min-w-12 rounded-full border-2 border-slate-300 bg-slate-600 px-4 text-base font-extrabold text-white shadow-sm hover:bg-slate-700"
-                        :disabled="phrase.length === 0"
-                        @click="applyMorph(tile.kind)"
-                    >
-                        {{ tile.label }}
-                    </Button>
-                </div>
-
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <div class="flex flex-wrap gap-2">
+                <div
+                    class="rounded-3xl border-2 border-slate-200 bg-white/90 px-4 py-2 shadow-md backdrop-blur"
+                    aria-label="Modifiers"
+                >
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                        <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Endings</span>
                         <Button
+                            v-for="tile in MORPH_TILES"
+                            :key="tile.kind"
                             type="button"
-                            class="h-12 rounded-full px-5 text-base font-extrabold shadow-md"
-                            @click="speakPhrase"
+                            size="sm"
+                            class="h-10 min-w-12 rounded-full border-2 border-slate-300 bg-slate-600 px-4 text-base font-extrabold text-white shadow-sm hover:bg-slate-700"
                             :disabled="phrase.length === 0"
+                            @click="applyMorph(tile.kind)"
                         >
-                            <Volume2 class="mr-2 h-5 w-5" />
-                            Speak
-                        </Button>
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            class="h-12 rounded-full px-5 text-base font-extrabold"
-                            @click="removeLast"
-                            :disabled="phrase.length === 0"
-                        >
-                            <Delete class="mr-2 h-5 w-5" />
-                            Oops
-                        </Button>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            class="h-12 rounded-full px-5 text-base font-extrabold"
-                            @click="clearPhrase"
-                            :disabled="phrase.length === 0"
-                        >
-                            Clear
+                            {{ tile.label }}
                         </Button>
                     </div>
-                    <PhrasesPanel
-                        :phrases="phrases"
-                        :menu-id="menu?.id ?? null"
-                        :menu-name="menu?.name ?? 'Home'"
-                        :is-guest="is_guest"
-                        :speak="speak"
-                    />
                 </div>
             </div>
 
@@ -460,9 +614,9 @@ onBeforeUnmount(() => {
                 <Link
                     v-if="menu"
                     :href="backHref"
-                    class="talkie-tile border-2 border-slate-400 bg-slate-600 text-white shadow-md transition active:scale-95"
+                    class="talkie-tile border-2 border-orange-600 bg-orange-500 text-white shadow-md transition hover:bg-orange-600 active:scale-95"
                 >
-                    <ArrowLeft class="h-5 w-5" />
+                    <ArrowLeft class="h-7 w-7" />
                     Back
                 </Link>
 
@@ -471,8 +625,9 @@ onBeforeUnmount(() => {
                         v-for="child in menus"
                         :key="`menu-${child.id}`"
                         class="talkie-folder talkie-tile"
+                        :class="[child.is_hidden ? 'opacity-45' : undefined, tileSearchClass(isHighlightedMenu(child.id, child.name))]"
                     >
-                        <component :is="menuIcon(child.name)" class="h-5 w-5" />
+                        <BoardMenuIcon :name="child.name" :size="32" />
                         {{ child.name }}
                         <div class="mt-0.5 flex flex-wrap justify-center gap-0.5">
                             <Button
@@ -499,7 +654,35 @@ onBeforeUnmount(() => {
                             >
                                 <Pencil class="h-3.5 w-3.5" />
                             </Button>
-                            <Button type="button" size="icon" variant="destructive" class="h-7 w-7 rounded-full" @click="deleteMenu(child)">
+                            <Button
+                                v-if="child.is_builtin && child.is_hidden"
+                                type="button"
+                                size="icon"
+                                class="h-7 w-7 rounded-full border border-slate-200 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
+                                title="Show folder"
+                                @click="unhideMenu(child)"
+                            >
+                                <Eye class="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                                v-else-if="child.is_builtin"
+                                type="button"
+                                size="icon"
+                                class="h-7 w-7 rounded-full border border-slate-200 bg-white text-slate-800 shadow-sm hover:bg-slate-100"
+                                title="Hide folder"
+                                @click="hideMenu(child)"
+                            >
+                                <EyeOff class="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                                v-else
+                                type="button"
+                                size="icon"
+                                variant="destructive"
+                                class="h-7 w-7 rounded-full"
+                                title="Delete folder"
+                                @click="deleteMenu(child)"
+                            >
                                 <Trash2 class="h-3.5 w-3.5" />
                             </Button>
                         </div>
@@ -507,12 +690,13 @@ onBeforeUnmount(() => {
                 </template>
                 <template v-else>
                     <Link
-                        v-for="child in menus"
+                        v-for="child in playableMenus"
                         :key="`menu-${child.id}`"
                         :href="`/board/${child.id}`"
                         class="talkie-folder talkie-tile transition active:scale-95"
+                        :class="tileSearchClass(isHighlightedMenu(child.id, child.name))"
                     >
-                        <component :is="menuIcon(child.name)" class="h-5 w-5" />
+                        <BoardMenuIcon :name="child.name" :size="32" />
                         {{ child.name }}
                     </Link>
                 </template>
@@ -522,12 +706,12 @@ onBeforeUnmount(() => {
                         v-for="word in words"
                         :key="`word-${word.id}`"
                         class="talkie-word talkie-tile border-2"
-                        :class="word.is_hidden ? 'opacity-45' : undefined"
+                        :class="[word.is_hidden ? 'opacity-45' : undefined, tileSearchClass(isHighlightedWord(word.id, word.label))]"
                         :style="wordAccentStyle(word.label)"
                     >
                         <BoardWordIcon
                             :label="word.label"
-                            :size="18"
+                            :size="26"
                             :icon-class="wordAccentStyle(word.label) ? undefined : 'opacity-70'"
                         />
                         {{ word.label }}
@@ -596,6 +780,7 @@ onBeforeUnmount(() => {
                         :key="`word-${word.id}`"
                         type="button"
                         class="talkie-word talkie-tile touch-manipulation border-2 transition active:scale-95 select-none"
+                        :class="tileSearchClass(isHighlightedWord(word.id, word.label))"
                         :style="wordAccentStyle(word.label)"
                         @pointerdown="onWordPointerDown(word)"
                         @pointerup="onWordPointerUp(word, $event)"
@@ -605,7 +790,7 @@ onBeforeUnmount(() => {
                     >
                         <BoardWordIcon
                             :label="word.label"
-                            :size="18"
+                            :size="26"
                             :icon-class="wordAccentStyle(word.label) ? undefined : 'opacity-70'"
                         />
                         {{ word.label }}
@@ -619,7 +804,7 @@ onBeforeUnmount(() => {
 
             <p class="flex items-center justify-center gap-2 text-center text-sm font-semibold text-sky-700/80">
                 <BookOpen class="h-4 w-4" />
-                <span v-if="editMode">Edit mode: add, rename, pronounce, reorder, or delete tiles</span>
+                <span v-if="editMode">Edit mode: add, rename, pronounce, reorder, hide, or delete tiles</span>
                 <span v-else>Tip: tap to add · double-tap or press &amp; hold to speak alone</span>
             </p>
         </div>

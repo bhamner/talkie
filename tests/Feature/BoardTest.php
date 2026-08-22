@@ -15,14 +15,30 @@ test('guests can view the shared board', function () {
             ->component('board/Show')
             ->where('is_guest', true)
             ->where('menu', null)
-            ->has('menus', 26)
+            ->has('menus', 24)
             ->has('words')
-            ->where('menus.23.name', 'Colors')
-            ->where('menus.24.name', 'Shapes')
-            ->where('menus.25.name', 'Numbers')
+            ->has('search_index.menus')
+            ->has('search_index.words')
+            ->where('menus.21.name', 'Colors')
+            ->where('menus.22.name', 'Shapes')
+            ->where('menus.23.name', 'Numbers')
         );
 });
 
+test('board search highlight query is passed through to the page', function () {
+    $this->seed(BoardTemplateSeeder::class);
+
+    $food = Menu::query()->template()->whereNull('parent_id')->where('name', 'Food')->firstOrFail();
+    $cookie = $food->words()->where('label', 'cookie')->firstOrFail();
+
+    $this->get('/board/'.$food->id.'?highlight=word-'.$cookie->id)
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('board/Show')
+            ->where('highlight', 'word-'.$cookie->id)
+            ->where('menu.name', 'Food')
+        );
+});
 test('guests can open colors shapes and numbers menus', function (string $name) {
     $this->seed(BoardTemplateSeeder::class);
 

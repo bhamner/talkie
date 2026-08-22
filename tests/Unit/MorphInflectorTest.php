@@ -44,6 +44,14 @@ test('ly inflection covers common adverb forms', function (string $base, string 
     ['nice', 'nicely'],
 ]);
 
+test('possessive inflection adds apostrophe s', function (string $base, string $expected) {
+    expect(MorphInflector::apply($base, 'possessive'))->toBe($expected);
+})->with([
+    ['mom', "mom's"],
+    ['dog', "dog's"],
+    ['James', "James'"],
+]);
+
 test('phrase-style joins match expected spoken text', function () {
     $words = [
         MorphInflector::apply('bird', 'plural'),

@@ -179,6 +179,36 @@ test('authenticated users can reorder top-level folders', function () {
         ->and($second->fresh()->sort_order)->toBe($firstOrder);
 });
 
+test('authenticated users can hide built-in folders but not delete them', function () {
+    $this->seed(BoardTemplateSeeder::class);
+    $user = onboardedUser();
+
+    $menu = Menu::query()->forUser($user)->whereNull('parent_id')->where('name', 'Feelings')->firstOrFail();
+
+    expect($menu->is_builtin)->toBeTrue();
+
+    $this->actingAs($user)
+        ->from('/board')
+        ->delete(route('menus.destroy', $menu))
+        ->assertForbidden();
+
+    expect(Menu::query()->whereKey($menu->id)->exists())->toBeTrue();
+
+    $this->actingAs($user)
+        ->from('/board')
+        ->post(route('menus.hide', $menu))
+        ->assertRedirect('/board');
+
+    expect($menu->fresh()->is_hidden)->toBeTrue();
+
+    $this->actingAs($user)
+        ->from('/board')
+        ->post(route('menus.unhide', $menu))
+        ->assertRedirect('/board');
+
+    expect($menu->fresh()->is_hidden)->toBeFalse();
+});
+
 test('authenticated users can create rename and delete menus', function () {
     $this->seed(BoardTemplateSeeder::class);
     $user = onboardedUser();

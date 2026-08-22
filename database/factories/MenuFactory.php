@@ -21,6 +21,8 @@ class MenuFactory extends Factory
             'parent_id' => null,
             'name' => fake()->unique()->word(),
             'sort_order' => fake()->numberBetween(1, 20),
+            'is_builtin' => false,
+            'is_hidden' => false,
         ];
     }
 
@@ -28,6 +30,14 @@ class MenuFactory extends Factory
     {
         return $this->state(fn () => [
             'user_id' => null,
+            'is_builtin' => true,
+        ]);
+    }
+
+    public function builtin(): static
+    {
+        return $this->state(fn () => [
+            'is_builtin' => true,
         ]);
     }
 
