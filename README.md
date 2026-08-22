@@ -114,7 +114,7 @@ php artisan boost:update
 | ---- | ------- |
 | `app/Http/Controllers` | Board, auth, onboarding, settings |
 | `app/Services/BoardTemplateService.php` | Copies shared template board to a user |
-| `config/talkie_voices.php` | Voice catalog (free device + locked bundled Piper/Kokoro cards) |
+| `config/talkie_voices.php` | Voice catalog (device TTS + Piper on web/mobile, Kokoro mobile-only) |
 | `database/seeders/BoardTemplateSeeder.php` | Shared starter words/menus |
 | `resources/js/pages/board` | Full-screen speaking board UI |
 | `resources/js/pages/onboarding` | Name + voice onboarding |

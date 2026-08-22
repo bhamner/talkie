@@ -14,6 +14,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/board')->name('home');
 
+Route::view('privacy', 'legal.show', ['title' => 'Privacy Policy', 'policy' => 'privacy'])->name('privacy');
+Route::view('cookies', 'legal.show', ['title' => 'Cookie Policy', 'policy' => 'cookies'])->name('cookies');
+Route::view('terms', 'legal.show', ['title' => 'Terms and Conditions', 'policy' => 'terms'])->name('terms');
+
 Route::get('board/{menu?}', [BoardController::class, 'show'])
     ->middleware(EnsureOnboardingComplete::class)
     ->name('board');

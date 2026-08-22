@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AppLogo from '@/components/AppLogo.vue';
+import LegalFooter from '@/components/LegalFooter.vue';
 import TypingKeyboard from '@/components/TypingKeyboard.vue';
 import { Link } from '@inertiajs/vue3';
 
@@ -29,6 +30,8 @@ defineProps<{
                 <slot />
             </div>
         </div>
+
+        <LegalFooter class="mt-6" />
 
         <TypingKeyboard v-if="showTypingKeyboard !== false" />
     </div>

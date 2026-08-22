@@ -1,44 +1,71 @@
 # Talkie — build plan
 
-One codebase: **Laravel + Inertia + Vue** (web now), wrap with **Capacitor** later for iOS and Google Play.
+One codebase: **Laravel + Inertia + Vue**. iOS and Android are later **Capacitor shells** around that same UI — not three feature apps. Board, auth, and catalog work ships once on the web; store builds pick it up when you compile.
 
 ## Stack
 
 | Layer | Choice |
 |---|---|
-| App UI | Vue 3 + Inertia + Tailwind |
+| App UI | Vue 3 + Inertia + Tailwind (shared) |
 | API / auth | Laravel + Socialite (Google, Apple, Facebook) |
-| DB | SQLite locally; MySQL fine in MAMP/production |
-| TTS free | Device voices (`speechSynthesis`) |
-| TTS premium | **Downloadable on-device neural voices** (Piper + Kokoro via Sherpa-ONNX) |
-| Mobile | Capacitor wrapping the same UI + native TTS plugin |
+| DB | SQLite locally; Postgres in production |
+| TTS guests | Device voices (`speechSynthesis`) |
+| TTS signed-in web | Small **Piper** set in the browser (WASM), login required, free |
+| TTS paid mobile app | Same Piper models via **Sherpa-ONNX**, plus extra packs (Kokoro, more Piper) |
+| Mobile | Capacitor wrap + native TTS plugin + $10–20 paid store listing |
+
+## Payment
+
+| Surface | Price | Unlock |
+|---|---|---|
+| talkie.kids (web) | Free | Neural voices require an account. Guests keep device TTS. **No Stripe.** |
+| iOS / Android | One-time **$10–20 paid app** | Buying the app is the purchase. Full mobile voice library included. No in-app voice shop. |
+
+Do not sell digital voices on the website. Login is an account (board + settings sync, and so model downloads are not anonymous), not a paywall.
+
+The mobile price is for the **native app + larger offline library**, not the vocabulary. A child’s board stays in Postgres on their user. They can use the free site, then open the same social login in the paid app.
+
+**Not planned:** cloud TTS APIs (e.g. OpenAI `tts-1`), Stripe, or metered synthesis.
 
 ## TTS strategy
 
-**Free tier:** browser/OS `speechSynthesis` (what ships today).
-
-**Premium tier:** realistic voices that **download into the app** and synthesize **locally** — no per-character API billing, works offline after download.
-
 | Piece | Role |
 |---|---|
-| [Piper](https://github.com/OHF-Voice/piper1-gpl) | Fast neural voices (~25–60 MB ONNX models); good default premium option |
-| [Kokoro](https://github.com/k2-fsa/sherpa-onnx) (via Sherpa-ONNX) | Higher-quality neural voices (~80–360 MB); premium “studio” tier |
-| [Sherpa-ONNX](https://github.com/k2-fsa/sherpa-onnx) | On-device inference engine for Capacitor (iOS/Android native plugin) |
+| [Piper](https://github.com/OHF-Voice/piper1-gpl) | Shared neural voices. Same `voice_id` + ONNX files on web (WASM) and mobile (Sherpa) so Nova/Spark sound like the same voice. Native will be faster. |
+| [Kokoro](https://github.com/k2-fsa/sherpa-onnx) (via Sherpa-ONNX) | Heavier “studio” voices. **Mobile only** (too large for Safari/WASM). |
+| [Sherpa-ONNX](https://github.com/k2-fsa/sherpa-onnx) | On-device inference in the Capacitor plugin (Phase 4). |
 
-**Not planned:** cloud TTS APIs (e.g. OpenAI `tts-1`). Tap-heavy AAC usage fits bundled models + optional in-app purchase to unlock voice packs, not metered synthesis.
+Catalog lives in `config/talkie_voices.php` with a `platforms` list (`web`, `mobile`, or both). `selectable` is computed later from platform + auth; today only `device-default` is selectable.
 
-### Premium implementation (Phase 4)
+| Who | Voices |
+|---|---|
+| Guests | Friendly (`device-default`) via `speechSynthesis` |
+| Signed-in web | Friendly + 1–2 small/medium Piper voices (Nova, Spark) |
+| Paid mobile app | Those Piper voices **plus** Harbor (Kokoro) and any extra Piper variants |
 
-1. Capacitor shell + Sherpa-ONNX native plugin (synthesize to audio buffer / WAV).
-2. Voice packs as downloadable assets (bundled in app or fetched once on unlock); catalog entries in `config/talkie_voices.php` map to model IDs.
-3. Extend `useSpeech` (or sibling composable) to route: `provider: device` → `speechSynthesis`, `provider: bundled` → native Piper/Kokoro.
-4. Web-only users keep device voices; premium unlock messaging on mobile (or optional WASM later — not v1 premium path).
-5. Fallback to device TTS if model missing or synthesis fails.
+`useSpeech` will route `provider: device` → `speechSynthesis`, `provider: bundled` → Piper WASM on web or Sherpa on Capacitor. Fall back to device TTS if a model is missing or synthesis fails. Server validation must only allow IDs selectable **on that client** (a web user cannot save Harbor).
+
+UI copy: web-locked neural cards are “Sign in to use,” not a paywall. Mobile-only cards say “Included in the Talkie app.”
+
+### Phase 3 — Web neural voices (when we build it)
+
+1. Host 1–2 Piper `.onnx` + `.json` files (CDN preferred; App Platform disk is small).
+2. Cache in the browser (Cache API or OPFS). First preview after login may be slow; later taps should be local.
+3. Gate model fetch and bundled `selectable` on an authenticated user.
+4. Extend `useSpeech` with the bundled Piper WASM path.
+5. Voice catalog lock copy: login vs mobile-only.
+
+### Phase 4 — Mobile (when we build it)
+
+1. One Capacitor project wrapping the live app URL or a bundled web build (live URL is simpler for updates).
+2. Sherpa-ONNX native plugin; reuse the **same** Piper model IDs as web; add Kokoro and extra packs.
+3. Paid app on App Store Connect and Play Console ($10–20, no IAP).
+4. Store listings can mention the free web board.
 
 ## Data model
 
 - `menus` — nested folders (`parent_id`), `user_id` null = shared template
-- `words` — buttons in a menu (or home when `menu_id` null)
+- `words` — buttons in a menu (or home when `menu_id` null); `icon` is the catalog key
 - `users.preferred_name` — spoken greeting name
 - `users.provider` / `provider_id` — Socialite identity
 - `user_settings` — `voice_id`, `voice_uri`, `voice_name`, `onboarding_completed_at`
@@ -48,21 +75,23 @@ One codebase: **Laravel + Inertia + Vue** (web now), wrap with **Capacitor** lat
 
 - [x] Schema + template seeder
 - [x] Public board without login
-- [x] Personalize via Socialite + email auth
+- [x] Personalize via Socialite
 - [x] Onboarding: preferred name → voice catalog
 - [x] Greeting button (“Hello my name is …”)
 - [x] Nested board navigation + phrase bar
-- [x] Device TTS with premium-styled locked voice cards
+- [x] Device TTS with catalog cards for future bundled voices
 - [x] Customize menus/words (add/edit/delete/reorder + pronunciation)
-- [ ] Capacitor iOS + Android shells
-- [ ] Premium bundled voices (Piper/Kokoro download + unlock catalog cards)
+- [ ] Web Piper voices for signed-in users (WASM)
+- [ ] Capacitor iOS + Android paid app ($10–20) + Sherpa + larger library
 
 ## Phases
 
-1. **Foundations** — public board, auth, onboarding, voice catalog UI
-2. **Customization** — edit mode for menus/words (including phonetic “speak as”)
-3. **Mobile packaging** — Capacitor, store test builds, Sherpa-ONNX plugin scaffold
-4. **Premium voices** — downloadable Piper/Kokoro models, native synthesis, device fallback
+1. **Foundations** — public board, auth, onboarding, voice catalog UI — done
+2. **Customization** — edit mode for menus/words (including phonetic “speak as”) — done
+3. **Web neural voices** — login-gated Piper WASM, catalog/platform rules, download-once cache, `useSpeech` router
+4. **Mobile packaging + paid store app** — Capacitor, Sherpa-ONNX, reuse web Piper models, mobile-only packs, $10–20 listing
+
+Phase 3 is the only TTS work that belongs on the hosted site. Phase 4 does not reopen the board feature set.
 
 ## Local smoke test
 
@@ -76,4 +105,4 @@ composer run dev
 - Complete name + voice onboarding
 - Use the greeting button and phrase bar
 
-Seeded user: `test@example.com` (SSO-style factory user; onboarding already complete). Auth is SSO-only.
+Auth is SSO-only (Google / Facebook; Apple coming soon).

@@ -13,6 +13,7 @@ class TalkieVoices
      *     provider: string,
      *     engine?: string|null,
      *     model?: string|null,
+     *     platforms?: list<string>,
      *     preview_text: string,
      *     selectable: bool
      * }>
