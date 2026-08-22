@@ -16,6 +16,7 @@ class Word extends Model
         'user_id',
         'menu_id',
         'label',
+        'icon',
         'speak_text',
         'sort_order',
         'is_builtin',

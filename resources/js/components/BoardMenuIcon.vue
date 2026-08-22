@@ -1,26 +1,27 @@
 <script setup lang="ts">
-import { boardFolderIcon } from '@/lib/boardFolderIcons';
+import { boardFolderIconByKey } from '@/lib/boardFolderIcons';
 import { HugeiconsIcon } from '@hugeicons/vue';
 import { computed } from 'vue';
 
 const props = withDefaults(
     defineProps<{
-        name: string;
+        icon?: string | null;
         size?: number;
         iconClass?: string;
     }>(),
     {
         size: 32,
+        icon: null,
     },
 );
 
-const icon = computed(() => boardFolderIcon(props.name));
+const folderIcon = computed(() => boardFolderIconByKey(props.icon));
 </script>
 
 <template>
     <HugeiconsIcon
-        v-if="icon"
-        :icon="icon"
+        v-if="folderIcon"
+        :icon="folderIcon"
         :size="size"
         color="currentColor"
         :stroke-width="2"

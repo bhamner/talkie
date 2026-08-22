@@ -29,6 +29,7 @@ class BoardTemplateService
             $this->renameObsoleteMenus($user);
             $this->syncMissingTopLevelMenus($user);
             $this->syncMissingPhrases($user);
+            $this->syncIconsFromTemplate($user);
         });
     }
 
@@ -42,6 +43,7 @@ class BoardTemplateService
             $this->renameObsoleteMenus($user);
             $this->syncMissingTopLevelMenus($user);
             $this->syncMissingPhrases($user);
+            $this->syncIconsFromTemplate($user);
         });
     }
 
@@ -281,6 +283,7 @@ class BoardTemplateService
                 'user_id' => $user->id,
                 'menu_id' => null,
                 'label' => $templateWord->label,
+                'icon' => $templateWord->icon,
                 'speak_text' => $templateWord->speak_text,
                 'sort_order' => $templateWord->sort_order,
                 'is_builtin' => true,
@@ -329,6 +332,7 @@ class BoardTemplateService
                 'user_id' => $user->id,
                 'menu_id' => $userMenu->id,
                 'label' => $templateWord->label,
+                'icon' => $templateWord->icon,
                 'speak_text' => $templateWord->speak_text,
                 'sort_order' => $templateWord->sort_order,
                 'is_builtin' => true,
@@ -364,6 +368,7 @@ class BoardTemplateService
                 'user_id' => $user->id,
                 'parent_id' => null,
                 'name' => $templateMenu->name,
+                'icon' => $templateMenu->icon,
                 'sort_order' => $templateMenu->sort_order,
                 'is_builtin' => true,
                 'is_hidden' => false,
@@ -394,6 +399,7 @@ class BoardTemplateService
                     ? ($menuIdMap[$templateWord->menu_id] ?? null)
                     : null,
                 'label' => $templateWord->label,
+                'icon' => $templateWord->icon,
                 'speak_text' => $templateWord->speak_text,
                 'sort_order' => $templateWord->sort_order,
                 'is_builtin' => true,
@@ -516,6 +522,7 @@ class BoardTemplateService
             'user_id' => $user->id,
             'parent_id' => $parentId,
             'name' => $templateMenu->name,
+            'icon' => $templateMenu->icon,
             'sort_order' => $templateMenu->sort_order,
             'is_builtin' => true,
             'is_hidden' => false,
@@ -532,6 +539,7 @@ class BoardTemplateService
                 'user_id' => $user->id,
                 'menu_id' => $copy->id,
                 'label' => $templateWord->label,
+                'icon' => $templateWord->icon,
                 'speak_text' => $templateWord->speak_text,
                 'sort_order' => $templateWord->sort_order,
                 'is_builtin' => true,
@@ -564,6 +572,39 @@ class BoardTemplateService
 
         foreach ($childMenus as $childMenu) {
             $this->copyMenuSubtree($user, $childMenu, $copy->id);
+        }
+    }
+
+    private function syncIconsFromTemplate(User $user): void
+    {
+        $templateWordIcons = Word::query()
+            ->template()
+            ->whereNotNull('icon')
+            ->get(['label', 'icon']);
+
+        foreach ($templateWordIcons as $templateWord) {
+            Word::query()
+                ->forUser($user)
+                ->whereRaw('LOWER(label) = ?', [strtolower($templateWord->label)])
+                ->where(function ($query) use ($templateWord) {
+                    $query->whereNull('icon')->orWhere('icon', '!=', $templateWord->icon);
+                })
+                ->update(['icon' => $templateWord->icon]);
+        }
+
+        $templateMenuIcons = Menu::query()
+            ->template()
+            ->whereNotNull('icon')
+            ->get(['name', 'icon']);
+
+        foreach ($templateMenuIcons as $templateMenu) {
+            Menu::query()
+                ->forUser($user)
+                ->where('name', $templateMenu->name)
+                ->where(function ($query) use ($templateMenu) {
+                    $query->whereNull('icon')->orWhere('icon', '!=', $templateMenu->icon);
+                })
+                ->update(['icon' => $templateMenu->icon]);
         }
     }
 }

@@ -1,27 +1,29 @@
 <script setup lang="ts">
 import {
-    boardWordIcon,
+    boardWordIconByKey,
     boardWordIconSizeAdjustment,
     boardWordLetterDisplay,
     boardWordShowsLetterOnly,
 } from '@/lib/boardWordIcons';
-import { boardWordLucideIcon } from '@/lib/boardWordLucideIcons';
+import { boardWordLucideIconByKey } from '@/lib/boardWordLucideIcons';
 import { HugeiconsIcon } from '@hugeicons/vue';
 import { computed } from 'vue';
 
 const props = withDefaults(
     defineProps<{
         label: string;
+        icon?: string | null;
         size?: number;
         iconClass?: string;
     }>(),
     {
         size: 24,
+        icon: null,
     },
 );
 
-const icon = computed(() => boardWordIcon(props.label));
-const lucideIcon = computed(() => boardWordLucideIcon(props.label));
+const hugeicon = computed(() => boardWordIconByKey(props.icon));
+const lucideIcon = computed(() => boardWordLucideIconByKey(props.icon));
 const showsLetterOnly = computed(() => boardWordShowsLetterOnly(props.label));
 const letterDisplay = computed(() => boardWordLetterDisplay(props.label));
 const iconSize = computed(() => props.size + boardWordIconSizeAdjustment(props.label));
@@ -44,8 +46,8 @@ const iconSize = computed(() => props.size + boardWordIconSizeAdjustment(props.l
         :class="iconClass"
     />
     <HugeiconsIcon
-        v-else-if="icon"
-        :icon="icon"
+        v-else-if="hugeicon"
+        :icon="hugeicon"
         :size="iconSize"
         color="currentColor"
         :stroke-width="2"

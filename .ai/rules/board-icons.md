@@ -1,29 +1,30 @@
-# Board icons: one icon, one tile
+# Board icons: stored on the row, rendered from a catalog
 
-Word and folder tiles may show a pictogram only when it is **unique** to that tile.
+Word and folder tiles may show a pictogram only when that tile’s `icon` column has a catalog key.
 
 ## Rule
 
-- A Hugeicons (or folder) icon may be assigned to **one word label** or **one folder name** only — same constraint as vocabulary: one tile, one location.
-- Do **not** reuse the same icon for two words or two folders (e.g. do not map both `I` and `my` to `UserIcon`).
-- Do **not** use a generic fallback icon (no default smile, no “close enough” duplicate).
-- If no suitable unique icon exists yet, **omit the icon** — the tile still shows its label text.
-- Letter-only tiles (e.g. `a`) are allowed; that is not an icon reuse.
-- Word icons live in `resources/js/lib/boardWordIcons.ts` (Hugeicons).
-- Lucide word icons are allowed only in `resources/js/lib/boardWordLucideIcons.ts` when explicitly requested (e.g. `I` → `Smile`, `mine` → `SmilePlus`).
-- Folder icons live in `resources/js/lib/boardFolderIcons.ts` (Hugeicons). Do not assign Lucide folder icons on the board unless each folder gets its own unused Lucide glyph (prefer Hugeicons for folders).
+- Assignment lives on the database row: `words.icon` and `menus.icon` (nullable string catalog keys).
+- The frontend catalogs map those keys to SVG components. Do **not** look up icons by label or folder name at render time.
+- A catalog glyph should still be unique to one tile when adding new assignments — same constraint as vocabulary: one tile, one location. Existing color tiles sharing `CircleIcon` are a known exception (color comes from `boardWordColor`).
+- Do **not** use a generic fallback icon. If no suitable unique icon exists yet, leave `icon` null — the tile still shows its label text.
+- Letter-only tiles (e.g. `a`) are allowed; that is not an icon reuse. Letter-only is still decided from the label in `boardWordIcons.ts`.
+- Hugeicons catalog: `resources/js/lib/boardWordIcons.ts` (`wordIconCatalog`) and `resources/js/lib/boardFolderIcons.ts` (`folderIconCatalog`).
+- Lucide keys are prefixed (`lucide:smile`) and live in `resources/js/lib/boardWordLucideIcons.ts`. Use Lucide only when explicitly requested (e.g. `I` → `lucide:smile`, `mine` → `lucide:smile-plus`, `friend` → `lucide:users-round`).
+- Template seeding uses `App\Support\BoardIcons` (label/folder name → catalog key). After seed, the row is the source of truth.
 
 ## Before adding an icon
 
-1. Search `boardWordIcons.ts` and `boardFolderIcons.ts` for the icon import or name.
-2. Confirm no other label or folder already uses that icon.
-3. If the icon is taken, leave the new tile without an icon until a distinct icon is chosen.
+1. Add the Hugeicon (or Lucide) to the matching catalog if it is not already there.
+2. Confirm no other template word or folder already uses that catalog key (except the known color-circle exception).
+3. Set the key in `App\Support\BoardIcons` so `BoardTemplateSeeder` writes it onto the row.
+4. If the icon is taken, leave the new tile’s `icon` null until a distinct glyph is chosen.
 
 ## UI behavior
 
-- `BoardWordIcon.vue` renders a letter, a unique Lucide or Hugeicon, or nothing.
-- `BoardMenuIcon.vue` renders a unique folder Hugeicon or nothing.
+- `BoardWordIcon.vue` renders a letter, or the Lucide/Hugeicon for `word.icon`, or nothing.
+- `BoardMenuIcon.vue` renders the Hugeicon for `menu.icon`, or nothing.
 
 ## Enforcement
 
-When changing icon maps, grep for duplicate icon identifiers across each file and remove reuse. Keep icon assignment aligned with `board-vocabulary.md` (one word, one menu).
+When changing icon assignments, grep `BoardIcons.php` and the catalogs for duplicate keys. Keep assignment aligned with `board-vocabulary.md` (one word, one menu).

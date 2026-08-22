@@ -20,6 +20,7 @@ class MenuFactory extends Factory
             'user_id' => User::factory(),
             'parent_id' => null,
             'name' => fake()->unique()->word(),
+            'icon' => null,
             'sort_order' => fake()->numberBetween(1, 20),
             'is_builtin' => false,
             'is_hidden' => false,

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Menu;
 use App\Models\Phrase;
 use App\Models\Word;
+use App\Support\BoardIcons;
 use App\Support\CoreVocabulary;
 use Illuminate\Database\Seeder;
 
@@ -266,6 +267,7 @@ class BoardTemplateSeeder extends Seeder
             'user_id' => null,
             'parent_id' => $parent?->id,
             'name' => $name,
+            'icon' => BoardIcons::forFolder($name),
             'sort_order' => $sortOrder,
             'is_builtin' => true,
             'is_hidden' => false,
@@ -282,6 +284,7 @@ class BoardTemplateSeeder extends Seeder
                 'user_id' => null,
                 'menu_id' => $menu?->id,
                 'label' => $label,
+                'icon' => BoardIcons::forWord($label),
                 'speak_text' => null,
                 'sort_order' => $index + 1,
                 'is_builtin' => true,
@@ -308,6 +311,7 @@ class BoardTemplateSeeder extends Seeder
                 'user_id' => null,
                 'menu_id' => $menu?->id,
                 'label' => $label,
+                'icon' => BoardIcons::forWord($label),
                 'speak_text' => $speakText,
                 'sort_order' => $index + 1,
                 'is_builtin' => true,

@@ -44,8 +44,8 @@ class BoardController extends Controller
             $phrasesQuery->template();
         }
 
-        $menus = $menusQuery->get(['id', 'name', 'parent_id', 'sort_order', 'is_builtin', 'is_hidden']);
-        $words = $wordsQuery->get(['id', 'label', 'speak_text', 'menu_id', 'sort_order', 'is_builtin', 'is_hidden']);
+        $menus = $menusQuery->get(['id', 'name', 'parent_id', 'sort_order', 'icon', 'is_builtin', 'is_hidden']);
+        $words = $wordsQuery->get(['id', 'label', 'icon', 'speak_text', 'menu_id', 'sort_order', 'is_builtin', 'is_hidden']);
         $phrases = $phrasesQuery->get(['id', 'text', 'menu_id', 'sort_order', 'is_builtin', 'is_hidden']);
 
         $ancestors = [];
@@ -104,17 +104,20 @@ class BoardController extends Controller
                 'id' => $menu->id,
                 'name' => $menu->name,
                 'parent_id' => $menu->parent_id,
+                'icon' => $menu->icon,
             ] : null,
             'menus' => $menus->map(fn (Menu $child) => [
                 'id' => $child->id,
                 'name' => $child->name,
                 'parent_id' => $child->parent_id,
+                'icon' => $child->icon,
                 'is_builtin' => $child->is_builtin,
                 'is_hidden' => $child->is_hidden,
             ]),
             'words' => $words->map(fn (Word $word) => [
                 'id' => $word->id,
                 'label' => $word->label,
+                'icon' => $word->icon,
                 'speak_text' => $word->speak_text,
                 'is_builtin' => $word->is_builtin,
                 'is_hidden' => $word->is_hidden,

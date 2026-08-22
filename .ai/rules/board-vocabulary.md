@@ -6,7 +6,7 @@ Every speakable **word tile** must exist in exactly one place on the board.
 
 - A word `label` (case-insensitive) may appear on **one menu only** — including the home/root board (`menu_id` null).
 - Do **not** duplicate the same word in another folder or section (e.g. do not put `home` in both Places and Home words).
-- When adding template words in `BoardTemplateSeeder`, new user copies in `BoardTemplateService`, or icons in `boardWordIcons.ts` / `boardFolderIcons.ts`, check the full board first. See [board-icons.md](./board-icons.md).
+- When adding template words in `BoardTemplateSeeder`, new user copies in `BoardTemplateService`, or icon keys in `App\Support\BoardIcons`, check the full board first. See [board-icons.md](./board-icons.md).
 - If a concept fits multiple categories, pick the single best home or use a distinct label (`go home` vs root `home` is fine; two tiles both labeled `home` is not).
 - Highest-frequency scored core words live on the **home board**, ordered by use frequency (`App\Support\CoreVocabulary::scoredHomeWords()`).
 - Marvin / Beukelman / Bilyeu preschool words are covered via `CoreVocabulary::requiredBoardLabels()` (fillers like `um`/`ah` excluded; aliases like `ya`→`yes`, `ok`→`okay`, number words→digit tiles).
@@ -15,7 +15,7 @@ Every speakable **word tile** must exist in exactly one place on the board.
 
 ## Before adding tiles
 
-1. Search seeders, services, and `boardWordIcons.ts` for the label.
+1. Search seeders, services, and `App\Support\BoardIcons` for the label.
 2. Confirm no existing tile uses that label elsewhere.
 3. Add or update the Pest test expectation if the vocabulary grows.
 

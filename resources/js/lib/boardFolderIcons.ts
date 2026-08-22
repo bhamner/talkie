@@ -15,27 +15,31 @@ import Time02Icon from '@hugeicons/core-free-icons/Time02Icon';
 import UserFullViewIcon from '@hugeicons/core-free-icons/UserFullViewIcon';
 import UserGroupIcon from '@hugeicons/core-free-icons/UserGroupIcon';
 
-type BoardFolderIconData = typeof MaskTheater01Icon;
+type BoardFolderIconData = typeof ArrangeByNumbersOneNineIcon;
 
-const boardFolderIconMap: Record<string, BoardFolderIconData> = {
-    Animals: PokemonIcon,
-    Body: UserFullViewIcon,
-    Colors: RainbowIcon,
-    Describing: FolderDetailsIcon,
-    Feelings: MaskTheater01Icon,
-    Food: ServingFoodIcon,
-    Friends: UserGroupIcon,
-    Home: House05Icon,
-    Nature: Image03Icon,
-    Numbers: ArrangeByNumbersOneNineIcon,
-    Places: BeachIcon,
-    Really: ExclamationMarkBigIcon,
-    Shapes: DiceIcon,
-    Stuff: GroupItemsIcon,
-    Time: Time02Icon,
-    Vehicles: GarbageTruckIcon,
+export const folderIconCatalog: Record<string, BoardFolderIconData> = {
+    ArrangeByNumbersOneNineIcon,
+    BeachIcon,
+    DiceIcon,
+    ExclamationMarkBigIcon,
+    FolderDetailsIcon,
+    GarbageTruckIcon,
+    GroupItemsIcon,
+    House05Icon,
+    Image03Icon,
+    MaskTheater01Icon,
+    PokemonIcon,
+    RainbowIcon,
+    ServingFoodIcon,
+    Time02Icon,
+    UserFullViewIcon,
+    UserGroupIcon,
 };
 
-export function boardFolderIcon(name: string): BoardFolderIconData | undefined {
-    return boardFolderIconMap[name.trim()];
+export function boardFolderIconByKey(icon: string | null | undefined): BoardFolderIconData | undefined {
+    if (!icon) {
+        return undefined;
+    }
+
+    return folderIconCatalog[icon];
 }

@@ -44,6 +44,7 @@ type BoardMenu = {
     id: number;
     name: string;
     parent_id: number | null;
+    icon?: string | null;
     sort_order?: number;
     is_builtin?: boolean;
     is_hidden?: boolean;
@@ -52,6 +53,7 @@ type BoardMenu = {
 type BoardWord = {
     id: number;
     label: string;
+    icon?: string | null;
     speak_text: string | null;
     is_builtin?: boolean;
     is_hidden?: boolean;
@@ -76,7 +78,7 @@ type SearchIndex = {
 };
 
 const props = defineProps<{
-    menu: { id: number; name: string; parent_id: number | null } | null;
+    menu: { id: number; name: string; parent_id: number | null; icon?: string | null } | null;
     menus: BoardMenu[];
     words: BoardWord[];
     phrases: BoardPhrase[];
@@ -473,7 +475,7 @@ onBeforeUnmount(() => {
             <div class="flex flex-wrap items-end justify-between gap-3">
                 <div v-if="menu">
                     <h1 class="flex items-center gap-2 text-3xl font-extrabold tracking-tight text-slate-800 sm:text-4xl">
-                        <BoardMenuIcon :name="menu.name" :size="40" icon-class="text-orange-500" />
+                        <BoardMenuIcon :icon="menu.icon" :size="40" icon-class="text-orange-500" />
                         {{ menu.name }}
                     </h1>
                 </div>
@@ -627,7 +629,7 @@ onBeforeUnmount(() => {
                         class="talkie-folder talkie-tile"
                         :class="[child.is_hidden ? 'opacity-45' : undefined, tileSearchClass(isHighlightedMenu(child.id, child.name))]"
                     >
-                        <BoardMenuIcon :name="child.name" :size="32" />
+                        <BoardMenuIcon :icon="child.icon" :size="32" />
                         {{ child.name }}
                         <div class="mt-0.5 flex flex-wrap justify-center gap-0.5">
                             <Button
@@ -696,7 +698,7 @@ onBeforeUnmount(() => {
                         class="talkie-folder talkie-tile transition active:scale-95"
                         :class="tileSearchClass(isHighlightedMenu(child.id, child.name))"
                     >
-                        <BoardMenuIcon :name="child.name" :size="32" />
+                        <BoardMenuIcon :icon="child.icon" :size="32" />
                         {{ child.name }}
                     </Link>
                 </template>
@@ -711,6 +713,7 @@ onBeforeUnmount(() => {
                     >
                         <BoardWordIcon
                             :label="word.label"
+                            :icon="word.icon"
                             :size="26"
                             :icon-class="wordAccentStyle(word.label) ? undefined : 'opacity-70'"
                         />
@@ -790,6 +793,7 @@ onBeforeUnmount(() => {
                     >
                         <BoardWordIcon
                             :label="word.label"
+                            :icon="word.icon"
                             :size="26"
                             :icon-class="wordAccentStyle(word.label) ? undefined : 'opacity-70'"
                         />

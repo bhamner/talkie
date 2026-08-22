@@ -17,6 +17,7 @@ class Menu extends Model
         'user_id',
         'parent_id',
         'name',
+        'icon',
         'sort_order',
         'is_builtin',
         'is_hidden',

@@ -21,6 +21,7 @@ class WordFactory extends Factory
             'user_id' => User::factory(),
             'menu_id' => null,
             'label' => fake()->unique()->word(),
+            'icon' => null,
             'speak_text' => null,
             'sort_order' => fake()->numberBetween(1, 20),
             'is_builtin' => false,
