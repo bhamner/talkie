@@ -13,7 +13,7 @@ class PersonalizeController extends Controller
     {
         return Inertia::render('auth/Personalize', [
             'status' => $request->session()->get('status'),
-            'providers' => ['google', 'apple', 'facebook'],
+            'providers' => ['google', 'apple'],
         ]);
     }
 }

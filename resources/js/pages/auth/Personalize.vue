@@ -13,7 +13,7 @@ defineProps<{
 <template>
     <AuthBase
         title="Personalize Talkie"
-        description="Sign in with Google, Apple, or Facebook to save your name, voice, and custom word board."
+        description="Sign in with Google to save your name, voice, and custom word board. Apple is coming soon."
         :show-typing-keyboard="false"
     >
         <Head title="Personalize" />

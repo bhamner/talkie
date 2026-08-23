@@ -75,7 +75,14 @@ test('personalize page can be rendered with sso only', function () {
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('auth/Personalize')
-            ->has('providers', 3)
+            ->where('providers', ['google', 'apple'])
             ->missing('canResetPassword')
         );
 });
+
+test('facebook login routes are not available', function (string $path) {
+    $this->get($path)->assertNotFound();
+})->with([
+    '/auth/facebook/redirect',
+    '/auth/facebook/callback',
+]);

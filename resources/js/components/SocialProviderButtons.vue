@@ -8,7 +8,6 @@ defineProps<{
 const labels: Record<string, string> = {
     google: 'Continue with Google',
     apple: 'Continue with Apple',
-    facebook: 'Continue with Facebook',
 };
 </script>
 

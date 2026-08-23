@@ -7,7 +7,7 @@ One codebase: **Laravel + Inertia + Vue**. iOS and Android are later **Capacitor
 | Layer | Choice |
 |---|---|
 | App UI | Vue 3 + Inertia + Tailwind (shared) |
-| API / auth | Laravel + Socialite (Google, Apple, Facebook) |
+| API / auth | Laravel + Socialite (Google now; Apple later) |
 | DB | SQLite locally; Postgres in production |
 | TTS guests | Device voices (`speechSynthesis`) |
 | TTS signed-in web | Small **Piper** set in the browser (WASM), login required, free |
@@ -105,4 +105,4 @@ composer run dev
 - Complete name + voice onboarding
 - Use the greeting button and phrase bar
 
-Auth is SSO-only (Google / Facebook; Apple coming soon).
+Auth is SSO-only (Google now; Apple coming soon).

@@ -2,7 +2,7 @@
 
 Talkie is an open-source children’s speech communication board. Tap word and folder buttons to build phrases and speak them aloud. Guests can use a shared starter board; signing in lets each person save a preferred name, voice, and personalized board.
 
-Built with **Laravel 12**, **Inertia**, **Vue 3**, **Tailwind CSS**, and device text-to-speech. Social login is supported via Laravel Socialite (Google, Apple, Facebook).
+Built with **Laravel 12**, **Inertia**, **Vue 3**, **Tailwind CSS**, and device text-to-speech. Social login is supported via Laravel Socialite (Google now; Apple later).
 
 ## Features
 
@@ -52,7 +52,7 @@ Then open [http://127.0.0.1:8000](http://127.0.0.1:8000) (or the URL shown by `p
 
 ### Seeded test user
 
-After `php artisan migrate --seed`, a local SSO-style user exists (`test@example.com`) with onboarding completed and a personal board copy. Sign-in in the app is single sign-on only (Google, Apple, or Facebook) — Talkie does not store passwords.
+After `php artisan migrate --seed`, a local SSO-style user exists (`test@example.com`) with onboarding completed and a personal board copy. Sign-in in the app is single sign-on only (Google now; Apple later) — Talkie does not store passwords.
 
 ### Social login
 
@@ -62,10 +62,6 @@ Auth uses OAuth only. Add credentials from each provider console to `.env` (see 
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 GOOGLE_REDIRECT_URI="${APP_URL}/auth/google/callback"
-
-FACEBOOK_CLIENT_ID=
-FACEBOOK_CLIENT_SECRET=
-FACEBOOK_REDIRECT_URI="${APP_URL}/auth/facebook/callback"
 
 APPLE_CLIENT_ID=
 APPLE_CLIENT_SECRET=

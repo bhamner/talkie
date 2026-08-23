@@ -56,7 +56,7 @@ const submit = () => {
                     <div class="grid gap-2">
                         <Label for="email">Email address</Label>
                         <Input id="email" :model-value="user.email" type="email" class="mt-1 block w-full bg-slate-50" disabled />
-                        <p class="text-sm font-semibold text-slate-500">Managed by Google, Apple, or Facebook sign-in.</p>
+                        <p class="text-sm font-semibold text-slate-500">Managed by Google or Apple sign-in.</p>
                     </div>
 
                     <div class="flex items-center gap-4">

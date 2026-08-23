@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirectResponse
 class SocialiteController extends Controller
 {
     /** @var list<string> */
-    private array $providers = ['google', 'apple', 'facebook'];
+    private array $providers = ['google', 'apple'];
 
     public function redirect(string $provider): SymfonyRedirectResponse|RedirectResponse
     {
