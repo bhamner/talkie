@@ -18,3 +18,10 @@ test('legal pages are public and use the talkie.kids website', function (string 
     'cookies' => ['/cookies', 'COOKIE POLICY'],
     'terms' => ['/terms', 'TERMS AND CONDITIONS'],
 ]);
+
+test('privacy policy points account data requests at the profile settings page', function () {
+    $this->get('/privacy')
+        ->assertSuccessful()
+        ->assertDontSee('talkie.kids/user', false)
+        ->assertSee('https://www.talkie.kids/settings/profile', false);
+});

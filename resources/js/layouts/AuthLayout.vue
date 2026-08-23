@@ -5,11 +5,17 @@ defineProps<{
     title?: string;
     description?: string;
     showTypingKeyboard?: boolean;
+    showLegalFooter?: boolean;
 }>();
 </script>
 
 <template>
-    <AuthLayout :title="title" :description="description" :show-typing-keyboard="showTypingKeyboard">
+    <AuthLayout
+        :title="title"
+        :description="description"
+        :show-typing-keyboard="showTypingKeyboard"
+        :show-legal-footer="showLegalFooter"
+    >
         <slot />
     </AuthLayout>
 </template>

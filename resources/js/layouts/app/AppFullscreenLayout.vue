@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import AppLogo from '@/components/AppLogo.vue';
-import LegalFooter from '@/components/LegalFooter.vue';
 import ParentalGateDialog from '@/components/ParentalGateDialog.vue';
 import TypingKeyboard from '@/components/TypingKeyboard.vue';
 import UserMenuContent from '@/components/UserMenuContent.vue';
@@ -87,14 +86,11 @@ const onGateUnlocked = async () => {
             <slot />
         </main>
 
-        <footer class="px-2 pb-4 text-center text-sm font-semibold text-sky-700/80 sm:px-3">
-            <div class="flex flex-col items-center gap-3">
-                <span v-if="!user" class="inline-flex items-center gap-1">
-                    <UserRound class="h-4 w-4" />
-                    Tap words to speak — personalize anytime to save your voice
-                </span>
-                <LegalFooter />
-            </div>
+        <footer v-if="!user" class="px-2 pb-4 text-center text-sm font-semibold text-sky-700/80 sm:px-3">
+            <span class="inline-flex items-center gap-1">
+                <UserRound class="h-4 w-4" />
+                Tap words to speak — personalize anytime to save your voice
+            </span>
         </footer>
 
         <TypingKeyboard />

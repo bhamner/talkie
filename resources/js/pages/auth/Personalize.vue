@@ -15,6 +15,7 @@ defineProps<{
         title="Personalize Talkie"
         description="Sign in with Google to save your name, voice, and custom word board. Apple is coming soon."
         :show-typing-keyboard="false"
+        show-legal-footer
     >
         <Head title="Personalize" />
 

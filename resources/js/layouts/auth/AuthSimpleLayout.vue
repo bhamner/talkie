@@ -8,6 +8,7 @@ defineProps<{
     title?: string;
     description?: string;
     showTypingKeyboard?: boolean;
+    showLegalFooter?: boolean;
 }>();
 </script>
 
@@ -31,7 +32,7 @@ defineProps<{
             </div>
         </div>
 
-        <LegalFooter class="mt-6" />
+        <LegalFooter v-if="showLegalFooter" class="mt-6" />
 
         <TypingKeyboard v-if="showTypingKeyboard !== false" />
     </div>
