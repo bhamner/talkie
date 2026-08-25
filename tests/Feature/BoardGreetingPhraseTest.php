@@ -58,7 +58,7 @@ test('nested menus do not include greeting phrase', function () {
     $food = Menu::query()->forUser($user)->where('name', 'Food')->firstOrFail();
 
     $this->actingAs($user)
-        ->get('/board/'.$food->id)
+        ->get('/board/'.$food->slug)
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('board/Show')

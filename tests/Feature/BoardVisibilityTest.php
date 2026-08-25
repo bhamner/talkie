@@ -95,7 +95,7 @@ test('authenticated users can hide and unhide built-in folders', function () {
     expect(Menu::query()->whereKey($menu->id)->exists())->toBeTrue();
 
     $this->actingAs($user)
-        ->get('/board/'.$menu->id)
+        ->get('/board/'.$menu->slug)
         ->assertNotFound();
 
     $this->actingAs($user)

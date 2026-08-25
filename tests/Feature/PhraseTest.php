@@ -12,7 +12,7 @@ test('board pages include phrases for the current menu', function () {
 
     $food = Menu::query()->template()->whereNull('parent_id')->where('name', 'Food')->firstOrFail();
 
-    $this->get('/board/'.$food->id)
+    $this->get('/board/'.$food->slug)
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('board/Show')
@@ -37,12 +37,12 @@ test('authenticated users can create a phrase for a menu', function () {
     $food = Menu::query()->forUser($user)->where('name', 'Food')->firstOrFail();
 
     $this->actingAs($user)
-        ->from('/board/'.$food->id)
+        ->from('/board/'.$food->slug)
         ->post(route('phrases.store'), [
             'text' => 'I want pizza',
             'menu_id' => $food->id,
         ])
-        ->assertRedirect('/board/'.$food->id);
+        ->assertRedirect('/board/'.$food->slug);
 
     expect(Phrase::query()->forUser($user)->where('menu_id', $food->id)->where('text', 'I want pizza')->exists())->toBeTrue();
 });
@@ -123,7 +123,7 @@ test('sync adds missing template phrases to existing menus', function () {
     $food = Menu::query()->forUser($user)->where('name', 'Food')->firstOrFail();
     Phrase::query()->forUser($user)->where('menu_id', $food->id)->delete();
 
-    $this->actingAs($user)->get('/board/'.$food->id)->assertOk();
+    $this->actingAs($user)->get('/board')->assertOk();
 
     expect(Phrase::query()->forUser($user)->where('menu_id', $food->id)->where('text', 'I am hungry')->exists())->toBeTrue();
 });

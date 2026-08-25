@@ -57,6 +57,7 @@ const submit = () => {
 
     const options = {
         preserveScroll: true,
+        reset: ['search_index'],
         onSuccess: () => close(),
     };
 

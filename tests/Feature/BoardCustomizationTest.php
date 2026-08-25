@@ -227,7 +227,8 @@ test('authenticated users can create rename and delete menus', function () {
         ->put(route('menus.update', $menu), ['name' => 'Classroom'])
         ->assertRedirect();
 
-    expect($menu->fresh()->name)->toBe('Classroom');
+    expect($menu->fresh()->name)->toBe('Classroom')
+        ->and($menu->fresh()->slug)->toBe('classroom');
 
     Word::factory()->create([
         'user_id' => $user->id,

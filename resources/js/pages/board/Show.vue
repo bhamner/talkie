@@ -43,6 +43,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 type BoardMenu = {
     id: number;
     name: string;
+    slug: string;
     parent_id: number | null;
     icon?: string | null;
     sort_order?: number;
@@ -70,15 +71,16 @@ type BoardPhrase = {
 type Ancestor = {
     id: number;
     name: string;
+    slug: string;
 };
 
 type SearchIndex = {
-    menus: { id: number; name: string; parent_id: number | null }[];
-    words: { id: number; label: string; menu_id: number | null; menu_name: string }[];
+    menus: { id: number; name: string; slug: string; parent_id: number | null }[];
+    words: { id: number; label: string; menu_id: number | null; menu_name: string; menu_slug: string | null }[];
 };
 
 const props = defineProps<{
-    menu: { id: number; name: string; parent_id: number | null; icon?: string | null } | null;
+    menu: { id: number; name: string; slug: string; parent_id: number | null; icon?: string | null } | null;
     menus: BoardMenu[];
     words: BoardWord[];
     phrases: BoardPhrase[];
@@ -114,7 +116,18 @@ const textToSpeak = (word: BoardWord) => word.speak_text?.trim() || word.label;
 const phraseText = computed(() => phraseSpeakText(phrase.value));
 const pageTitle = computed(() => props.menu?.name ?? '');
 const isNestedBoard = computed(() => props.menu !== null);
-const backHref = computed(() => (props.menu?.parent_id ? `/board/${props.menu.parent_id}` : route('board')));
+const boardUrl = (slug: string | null, highlight?: string): string => {
+    const path = slug ? route('board', { menu: slug }) : route('board');
+
+    return highlight ? `${path}?highlight=${encodeURIComponent(highlight)}` : path;
+};
+const backHref = computed(() => {
+    if (props.ancestors.length < 2) {
+        return route('board');
+    }
+
+    return boardUrl(props.ancestors[props.ancestors.length - 2].slug);
+});
 
 watch(
     isNestedBoard,
@@ -188,9 +201,12 @@ const remoteSearchResults = computed(() => {
             continue;
         }
 
+        const parentSlug = item.parent_id
+            ? (props.search_index.menus.find((menu) => menu.id === item.parent_id)?.slug ?? null)
+            : null;
         const href = item.parent_id
-            ? `/board/${item.parent_id}?highlight=menu-${item.id}`
-            : `/board?highlight=menu-${item.id}`;
+            ? boardUrl(parentSlug, `menu-${item.id}`)
+            : boardUrl(null, `menu-${item.id}`);
 
         results.push({
             key: `menu-${item.id}`,
@@ -210,8 +226,8 @@ const remoteSearchResults = computed(() => {
         }
 
         const href = item.menu_id
-            ? `/board/${item.menu_id}?highlight=word-${item.id}`
-            : `/board?highlight=word-${item.id}`;
+            ? boardUrl(item.menu_slug, `word-${item.id}`)
+            : boardUrl(null, `word-${item.id}`);
 
         results.push({
             key: `word-${item.id}`,
@@ -387,7 +403,8 @@ const openEditMenu = (menu: BoardMenu) => {
 const boardMutation = {
     preserveScroll: true,
     preserveState: true,
-    only: ['words', 'menus'] as string[],
+    only: ['words', 'menus', 'search_index'] as string[],
+    reset: ['search_index'] as string[],
 };
 
 const deleteWord = (word: BoardWord) => {
@@ -481,13 +498,23 @@ onBeforeUnmount(() => {
                 </div>
 
                 <div v-if="ancestors.length" class="flex flex-wrap items-center gap-2 text-sm font-bold text-sky-700">
-                    <Link :href="route('board')" class="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 shadow-sm">
+                    <Link
+                        :href="route('board')"
+                        :prefetch="['hover', 'click']"
+                        cache-for="60s"
+                        class="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 shadow-sm"
+                    >
                         <Home class="h-3.5 w-3.5" />
                         Home
                     </Link>
                     <template v-for="ancestor in ancestors" :key="ancestor.id">
                         <span>/</span>
-                        <Link :href="`/board/${ancestor.id}`" class="rounded-full bg-white/80 px-3 py-1 shadow-sm">
+                        <Link
+                            :href="boardUrl(ancestor.slug)"
+                            :prefetch="['hover', 'click']"
+                            cache-for="60s"
+                            class="rounded-full bg-white/80 px-3 py-1 shadow-sm"
+                        >
                             {{ ancestor.name }}
                         </Link>
                     </template>
@@ -503,6 +530,8 @@ onBeforeUnmount(() => {
                     v-for="result in remoteSearchResults"
                     :key="result.key"
                     :href="result.href"
+                    :prefetch="['hover', 'click']"
+                    cache-for="60s"
                     class="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-white px-3 py-1 text-sm font-extrabold text-slate-800 shadow-sm hover:bg-amber-100"
                 >
                     {{ result.label }}
@@ -616,6 +645,8 @@ onBeforeUnmount(() => {
                 <Link
                     v-if="menu"
                     :href="backHref"
+                    :prefetch="['hover', 'click']"
+                    cache-for="60s"
                     class="talkie-tile border-2 border-orange-600 bg-orange-500 text-white shadow-md transition hover:bg-orange-600 active:scale-95"
                 >
                     <ArrowLeft class="h-7 w-7" />
@@ -694,7 +725,9 @@ onBeforeUnmount(() => {
                     <Link
                         v-for="child in playableMenus"
                         :key="`menu-${child.id}`"
-                        :href="`/board/${child.id}`"
+                        :href="boardUrl(child.slug)"
+                        :prefetch="['hover', 'click']"
+                        cache-for="60s"
                         class="talkie-folder talkie-tile transition active:scale-95"
                         :class="tileSearchClass(isHighlightedMenu(child.id, child.name))"
                     >
