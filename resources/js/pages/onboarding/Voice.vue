@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import VoiceCatalog, { type CatalogVoice } from '@/components/VoiceCatalog.vue';
+import VoiceProgressBanner from '@/components/VoiceProgressBanner.vue';
 import { useSpeech } from '@/composables/useSpeech';
+import { warmupPiper } from '@/lib/piperTts';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 
@@ -46,6 +48,11 @@ const chooseVoice = (voiceId: string) => {
     }
 
     applySelection(voice);
+
+    if (voice.engine === 'piper' && voice.model) {
+        void warmupPiper(voice.model);
+    }
+
     form.put(route('onboarding.voice.update'));
 };
 
@@ -70,9 +77,7 @@ const preview = async (voice: CatalogVoice) => {
         <Head title="Choose your voice" />
 
         <div class="flex flex-col gap-6">
-            <p v-if="isPreparingVoice" class="text-sm font-semibold text-sky-800">
-                Downloading Piper (~80 MB). This happens once, then previews should be quicker.
-            </p>
+            <VoiceProgressBanner />
             <p v-if="voiceError" class="text-sm font-semibold text-rose-700">{{ voiceError }}</p>
             <VoiceCatalog
                 :model-value="form.voice_id"

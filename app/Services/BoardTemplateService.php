@@ -7,6 +7,7 @@ use App\Models\Phrase;
 use App\Models\User;
 use App\Models\UserSetting;
 use App\Models\Word;
+use App\Support\BoardIcons;
 use Illuminate\Support\Facades\DB;
 
 class BoardTemplateService
@@ -19,6 +20,7 @@ class BoardTemplateService
     {
         DB::transaction(function () use ($user) {
             $this->ensureSettings($user);
+            $this->backfillMissingIconsFromCatalog();
 
             if (! $user->menus()->exists() && ! $user->words()->exists()) {
                 $this->copyAllTemplateContent($user);
@@ -40,11 +42,53 @@ class BoardTemplateService
     {
         DB::transaction(function () use ($user) {
             $this->ensureSettings($user);
+            $this->backfillMissingIconsFromCatalog();
             $this->renameObsoleteMenus($user);
             $this->syncMissingTopLevelMenus($user);
             $this->syncMissingPhrases($user);
             $this->syncIconsFromTemplate($user);
         });
+    }
+
+    public function backfillMissingIconsFromCatalog(): void
+    {
+        $wordIdsByIcon = [];
+
+        Word::query()
+            ->whereNull('icon')
+            ->orderBy('id')
+            ->each(function (Word $word) use (&$wordIdsByIcon): void {
+                $icon = BoardIcons::forWord($word->label);
+
+                if ($icon === null) {
+                    return;
+                }
+
+                $wordIdsByIcon[$icon][] = $word->id;
+            });
+
+        foreach ($wordIdsByIcon as $icon => $ids) {
+            Word::query()->whereIn('id', $ids)->update(['icon' => $icon]);
+        }
+
+        $menuIdsByIcon = [];
+
+        Menu::query()
+            ->whereNull('icon')
+            ->orderBy('id')
+            ->each(function (Menu $menu) use (&$menuIdsByIcon): void {
+                $icon = BoardIcons::forFolder($menu->name);
+
+                if ($icon === null) {
+                    return;
+                }
+
+                $menuIdsByIcon[$icon][] = $menu->id;
+            });
+
+        foreach ($menuIdsByIcon as $icon => $ids) {
+            Menu::query()->whereIn('id', $ids)->update(['icon' => $icon]);
+        }
     }
 
     private function renameObsoleteMenus(User $user): void

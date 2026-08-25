@@ -3,6 +3,7 @@ import AppLogo from '@/components/AppLogo.vue';
 import ParentalGateDialog from '@/components/ParentalGateDialog.vue';
 import TypingKeyboard from '@/components/TypingKeyboard.vue';
 import UserMenuContent from '@/components/UserMenuContent.vue';
+import VoiceProgressBanner from '@/components/VoiceProgressBanner.vue';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { type SharedData } from '@/types';
@@ -80,6 +81,8 @@ const onGateUnlocked = async () => {
                     </Button>
                 </div>
             </div>
+
+            <VoiceProgressBanner class="mt-3" />
         </header>
 
         <main class="flex w-full flex-1 flex-col px-2 py-3 sm:px-3 sm:py-4">

@@ -1,7 +1,7 @@
-import { cancelPiperPlayback, speakPiper } from '@/lib/piperTts';
+import { cancelPiperPlayback, piperProgress, speakPiper, warmupPiper } from '@/lib/piperTts';
 import { type SharedData } from '@/types';
 import { usePage } from '@inertiajs/vue3';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 export type DeviceVoice = {
     uri: string;
@@ -25,8 +25,10 @@ export function useSpeech(initialVoiceUri: string | null = null) {
     const voices = ref<DeviceVoice[]>([]);
     const selectedVoiceUri = ref<string | null>(initialVoiceUri);
     const isSupported = ref(false);
-    const isPreparingVoice = ref(false);
     const voiceError = ref<string | null>(null);
+    const isPreparingVoice = computed(
+        () => piperProgress.phase === 'downloading' || piperProgress.phase === 'preparing',
+    );
 
     const loadVoices = () => {
         if (!('speechSynthesis' in window)) {
@@ -86,7 +88,6 @@ export function useSpeech(initialVoiceUri: string | null = null) {
                 window.speechSynthesis.cancel();
             }
 
-            isPreparingVoice.value = true;
             voiceError.value = null;
 
             try {
@@ -95,10 +96,10 @@ export function useSpeech(initialVoiceUri: string | null = null) {
                 console.error('Piper voice failed', error);
 
                 if (error instanceof DOMException && error.name === 'NotAllowedError') {
-                    voiceError.value = 'Piper is ready. Tap Preview again to hear it.';
+                    voiceError.value = 'Piper is ready. Try again to hear it.';
                 } else {
                     voiceError.value =
-                        'Piper could not play. Stay on this page and try Preview again — the first time downloads a large voice file.';
+                        'Piper could not play. Stay on this page — the first time downloads a large voice file.';
                 }
 
                 if (fallbackToDevice) {
@@ -107,8 +108,6 @@ export function useSpeech(initialVoiceUri: string | null = null) {
                 }
 
                 throw error;
-            } finally {
-                isPreparingVoice.value = false;
             }
 
             return;
@@ -123,6 +122,11 @@ export function useSpeech(initialVoiceUri: string | null = null) {
 
         if ('speechSynthesis' in window) {
             window.speechSynthesis.onvoiceschanged = loadVoices;
+        }
+
+        const current = page.props.voice;
+        if (current?.engine === 'piper' && current.model) {
+            void warmupPiper(current.model);
         }
     });
 

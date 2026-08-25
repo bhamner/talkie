@@ -2,6 +2,7 @@
 import { TransitionRoot } from '@headlessui/vue';
 import VoiceCatalog, { type CatalogVoice } from '@/components/VoiceCatalog.vue';
 import { useSpeech } from '@/composables/useSpeech';
+import { warmupPiper } from '@/lib/piperTts';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -58,6 +59,10 @@ const saveVoice = (voiceId: string) => {
 
     applySelection(voice);
 
+    if (voice.engine === 'piper' && voice.model) {
+        void warmupPiper(voice.model);
+    }
+
     if (voice.id === (props.voice.id ?? 'device-default')) {
         return;
     }
@@ -91,9 +96,6 @@ const preview = async (voice: CatalogVoice) => {
                 </div>
 
                 <div class="space-y-6">
-                    <p v-if="isPreparingVoice" class="text-sm font-semibold text-sky-800">
-                        Downloading Piper (~80 MB). This happens once, then previews should be quicker.
-                    </p>
                     <p v-if="voiceError" class="text-sm font-semibold text-rose-700">{{ voiceError }}</p>
                     <VoiceCatalog
                         :model-value="form.voice_id"

@@ -50,6 +50,22 @@ test('sync copies missing icons onto an existing user board', function () {
         ->and(Menu::query()->forUser($user)->where('name', 'Food')->value('icon'))->toBe('ServingFoodIcon');
 });
 
+test('sync backfills icons from the catalog when template rows have none', function () {
+    $this->seed(BoardTemplateSeeder::class);
+
+    Word::query()->update(['icon' => null]);
+    Menu::query()->update(['icon' => null]);
+
+    $user = User::factory()->create();
+    app(BoardTemplateService::class)->copyToUser($user);
+
+    expect(Word::query()->template()->where('label', 'apple')->value('icon'))->toBe('Apple01Icon')
+        ->and(Word::query()->forUser($user)->where('label', 'apple')->value('icon'))->toBe('Apple01Icon')
+        ->and(Menu::query()->template()->where('name', 'Food')->value('icon'))->toBe('ServingFoodIcon')
+        ->and(Menu::query()->forUser($user)->where('name', 'Food')->value('icon'))->toBe('ServingFoodIcon')
+        ->and(Menu::query()->template()->where('name', 'Joiners')->value('icon'))->toBeNull();
+});
+
 test('board page includes icon keys for words and folders', function () {
     $this->seed(BoardTemplateSeeder::class);
 
