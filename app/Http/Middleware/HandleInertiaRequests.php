@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\TalkieVoices;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -47,11 +48,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $user,
             ],
-            'voice' => [
-                'id' => $user?->settings?->voice_id,
-                'uri' => $user?->settings?->voice_uri,
-                'name' => $user?->settings?->voice_name,
-            ],
+            'voice' => TalkieVoices::current($user),
         ]);
     }
 }

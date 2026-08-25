@@ -26,12 +26,33 @@ test('voice settings can be updated', function () {
         ->and($user->settings->voice_name)->toBe('Friendly');
 });
 
-test('premium voices cannot be selected yet', function () {
+test('signed in users can select the web libritts voice', function () {
     $user = createOnboardedUser();
 
     $this->actingAs($user)
         ->put('/settings/voice', [
             'voice_id' => 'premium-nova',
+        ])
+        ->assertRedirect();
+
+    $user->refresh();
+
+    expect($user->settings->voice_id)->toBe('premium-nova')
+        ->and($user->settings->voice_name)->toBe('Piper');
+});
+
+test('web users cannot select voices that are not in the catalog', function () {
+    $user = createOnboardedUser();
+
+    $this->actingAs($user)
+        ->put('/settings/voice', [
+            'voice_id' => 'premium-harbor',
+        ])
+        ->assertSessionHasErrors('voice_id');
+
+    $this->actingAs($user)
+        ->put('/settings/voice', [
+            'voice_id' => 'premium-spark',
         ])
         ->assertSessionHasErrors('voice_id');
 });

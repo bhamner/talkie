@@ -25,15 +25,9 @@ class VoiceController extends Controller
             return redirect()->route('onboarding.name');
         }
 
-        $settings = $user->settings;
-
         return Inertia::render('onboarding/Voice', [
-            'voices' => TalkieVoices::all(),
-            'voice' => [
-                'id' => $settings?->voice_id ?? 'device-default',
-                'uri' => $settings?->voice_uri,
-                'name' => $settings?->voice_name,
-            ],
+            'voices' => TalkieVoices::forClient($user),
+            'voice' => TalkieVoices::current($user),
             'preferred_name' => $user->preferred_name,
         ]);
     }
@@ -45,7 +39,7 @@ class VoiceController extends Controller
         }
 
         $validated = $request->validate([
-            'voice_id' => ['required', 'string', Rule::in(TalkieVoices::selectableIds())],
+            'voice_id' => ['required', 'string', Rule::in(TalkieVoices::selectableIds($request->user()))],
             'voice_uri' => ['nullable', 'string', 'max:255'],
             'voice_name' => ['nullable', 'string', 'max:255'],
         ]);

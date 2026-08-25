@@ -1,3 +1,6 @@
+import { cancelPiperPlayback, speakPiper } from '@/lib/piperTts';
+import { type SharedData } from '@/types';
+import { usePage } from '@inertiajs/vue3';
 import { onMounted, ref } from 'vue';
 
 export type DeviceVoice = {
@@ -7,10 +10,23 @@ export type DeviceVoice = {
     default: boolean;
 };
 
+export type SpeakCatalog = {
+    provider?: string | null;
+    engine?: string | null;
+    model?: string | null;
+};
+
+export type SpeakOptions = {
+    fallbackToDevice?: boolean;
+};
+
 export function useSpeech(initialVoiceUri: string | null = null) {
+    const page = usePage<SharedData>();
     const voices = ref<DeviceVoice[]>([]);
     const selectedVoiceUri = ref<string | null>(initialVoiceUri);
     const isSupported = ref(false);
+    const isPreparingVoice = ref(false);
+    const voiceError = ref<string | null>(null);
 
     const loadVoices = () => {
         if (!('speechSynthesis' in window)) {
@@ -35,8 +51,8 @@ export function useSpeech(initialVoiceUri: string | null = null) {
         }
     };
 
-    const speak = (text: string) => {
-        if (!text.trim() || !('speechSynthesis' in window)) {
+    const speakDevice = (text: string) => {
+        if (!('speechSynthesis' in window)) {
             return;
         }
 
@@ -54,6 +70,54 @@ export function useSpeech(initialVoiceUri: string | null = null) {
         window.speechSynthesis.speak(utterance);
     };
 
+    const speak = async (text: string, catalog?: SpeakCatalog, options: SpeakOptions = {}): Promise<void> => {
+        const trimmed = text.trim();
+        if (!trimmed) {
+            return;
+        }
+
+        const provider = catalog?.provider ?? page.props.voice?.provider ?? 'device';
+        const engine = catalog?.engine ?? page.props.voice?.engine ?? null;
+        const model = catalog?.model ?? page.props.voice?.model ?? null;
+        const fallbackToDevice = options.fallbackToDevice ?? true;
+
+        if (provider === 'bundled' && engine === 'piper' && model) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+
+            isPreparingVoice.value = true;
+            voiceError.value = null;
+
+            try {
+                await speakPiper(trimmed, model);
+            } catch (error) {
+                console.error('Piper voice failed', error);
+
+                if (error instanceof DOMException && error.name === 'NotAllowedError') {
+                    voiceError.value = 'Piper is ready. Tap Preview again to hear it.';
+                } else {
+                    voiceError.value =
+                        'Piper could not play. Stay on this page and try Preview again — the first time downloads a large voice file.';
+                }
+
+                if (fallbackToDevice) {
+                    speakDevice(trimmed);
+                    return;
+                }
+
+                throw error;
+            } finally {
+                isPreparingVoice.value = false;
+            }
+
+            return;
+        }
+
+        cancelPiperPlayback();
+        speakDevice(trimmed);
+    };
+
     onMounted(() => {
         loadVoices();
 
@@ -66,6 +130,8 @@ export function useSpeech(initialVoiceUri: string | null = null) {
         voices,
         selectedVoiceUri,
         isSupported,
+        isPreparingVoice,
+        voiceError,
         speak,
         loadVoices,
     };

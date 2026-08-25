@@ -20,6 +20,9 @@ export interface SharedVoice {
     id: string | null;
     uri: string | null;
     name: string | null;
+    provider?: string | null;
+    engine?: string | null;
+    model?: string | null;
 }
 
 export interface SharedData {

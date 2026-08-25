@@ -8,13 +8,17 @@ export type CatalogVoice = {
     description: string;
     tier: string;
     provider: string;
+    engine?: string | null;
+    model?: string | null;
     preview_text: string;
     selectable: boolean;
+    lock_reason?: string | null;
 };
 
 defineProps<{
     voices: CatalogVoice[];
     modelValue: string;
+    previewing?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -28,6 +32,38 @@ const select = (voice: CatalogVoice) => {
     }
 
     emit('update:modelValue', voice.id);
+};
+
+const tierLabel = (tier: string): string => {
+    if (tier === 'premium') {
+        return 'App';
+    }
+
+    if (tier === 'neural') {
+        return 'Neural';
+    }
+
+    return 'Free';
+};
+
+const tierClass = (tier: string): string => {
+    if (tier === 'premium') {
+        return 'bg-amber-200 text-amber-900';
+    }
+
+    if (tier === 'neural') {
+        return 'bg-sky-200 text-sky-900';
+    }
+
+    return 'bg-emerald-200 text-emerald-900';
+};
+
+const lockCopy = (reason: string | null | undefined): string => {
+    if (reason === 'app') {
+        return 'Included in the Talkie app';
+    }
+
+    return 'Sign in to use';
 };
 </script>
 
@@ -52,19 +88,15 @@ const select = (voice: CatalogVoice) => {
                         <h3 class="text-lg font-extrabold text-slate-800">{{ voice.name }}</h3>
                         <span
                             class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-extrabold"
-                            :class="
-                                voice.tier === 'premium'
-                                    ? 'bg-amber-200 text-amber-900'
-                                    : 'bg-emerald-200 text-emerald-900'
-                            "
+                            :class="tierClass(voice.tier)"
                         >
                             <Sparkles class="h-3 w-3" />
-                            {{ voice.tier === 'premium' ? 'Premium' : 'Free' }}
+                            {{ tierLabel(voice.tier) }}
                         </span>
                     </div>
                     <p class="mt-1 text-sm font-semibold text-slate-600">{{ voice.description }}</p>
                     <p v-if="!voice.selectable" class="mt-2 text-xs font-extrabold uppercase tracking-wide text-rose-500">
-                        Coming soon
+                        {{ lockCopy(voice.lock_reason) }}
                     </p>
                 </div>
                 <Lock v-if="!voice.selectable" class="mt-1 h-5 w-5 shrink-0 text-slate-400" />
@@ -76,13 +108,37 @@ const select = (voice: CatalogVoice) => {
                     size="sm"
                     variant="secondary"
                     class="rounded-full font-bold"
-                    :disabled="!voice.selectable"
+                    :disabled="!voice.selectable || previewing"
                     @click.stop="emit('preview', voice)"
                 >
                     <Volume2 class="mr-2 h-4 w-4" />
-                    Preview
+                    {{ previewing ? 'Loading…' : 'Preview' }}
                 </Button>
             </div>
         </button>
+
+        <div class="cursor-not-allowed rounded-3xl border-2 border-sky-200 bg-white p-4 text-left opacity-80">
+            <div class="flex items-start justify-between gap-3">
+                <h3 class="text-lg font-extrabold text-slate-800">More voices available in the app</h3>
+                <Lock class="mt-1 h-5 w-5 shrink-0 text-slate-400" />
+            </div>
+
+            <div class="mt-3 flex flex-wrap gap-2">
+                <a
+                    class="inline-flex cursor-not-allowed items-center rounded-full bg-slate-100 px-3 py-1.5 text-sm font-bold text-slate-400"
+                    aria-disabled="true"
+                    tabindex="-1"
+                >
+                    App Store
+                </a>
+                <a
+                    class="inline-flex cursor-not-allowed items-center rounded-full bg-slate-100 px-3 py-1.5 text-sm font-bold text-slate-400"
+                    aria-disabled="true"
+                    tabindex="-1"
+                >
+                    Play Store
+                </a>
+            </div>
+        </div>
     </div>
 </template>

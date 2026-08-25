@@ -10,8 +10,8 @@ One codebase: **Laravel + Inertia + Vue**. iOS and Android are later **Capacitor
 | API / auth | Laravel + Socialite (Google now; Apple later) |
 | DB | SQLite locally; Postgres in production |
 | TTS guests | Device voices (`speechSynthesis`) |
-| TTS signed-in web | Small **Piper** set in the browser (WASM), login required, free |
-| TTS paid mobile app | Same Piper models via **Sherpa-ONNX**, plus extra packs (Kokoro, more Piper) |
+| TTS signed-in web | One **Piper LibriTTS** model (`en_US-libritts_r-medium`) in the browser (WASM), login required, free |
+| TTS paid mobile app | Same LibriTTS model via **Sherpa-ONNX**, plus extra packs (Kokoro — hoped to include younger voices) |
 | Mobile | Capacitor wrap + native TTS plugin + $10–20 paid store listing |
 
 ## Payment
@@ -31,8 +31,8 @@ The mobile price is for the **native app + larger offline library**, not the voc
 
 | Piece | Role |
 |---|---|
-| [Piper](https://github.com/OHF-Voice/piper1-gpl) | Shared neural voices. Same `voice_id` + ONNX files on web (WASM) and mobile (Sherpa) so Nova/Spark sound like the same voice. Native will be faster. |
-| [Kokoro](https://github.com/k2-fsa/sherpa-onnx) (via Sherpa-ONNX) | Heavier “studio” voices. **Mobile only** (too large for Safari/WASM). |
+| [Piper](https://github.com/OHF-Voice/piper1-gpl) | Shared neural voice. Web uses **only** `en_US-libritts_r-medium` (LibriTTS-R, ~79 MB, speaker 0 as Nova). Same ONNX on mobile via Sherpa. Piper’s other English packs are mostly adult single-speaker voices, so we do not ship those on the web. |
+| [Kokoro](https://github.com/k2-fsa/sherpa-onnx) (via Sherpa-ONNX) | Heavier “studio” / hoped-for younger voices. **Mobile only** (too large for Safari/WASM). |
 | [Sherpa-ONNX](https://github.com/k2-fsa/sherpa-onnx) | On-device inference in the Capacitor plugin (Phase 4). |
 
 Catalog lives in `config/talkie_voices.php` with a `platforms` list (`web`, `mobile`, or both). `selectable` is computed later from platform + auth; today only `device-default` is selectable.
@@ -40,8 +40,8 @@ Catalog lives in `config/talkie_voices.php` with a `platforms` list (`web`, `mob
 | Who | Voices |
 |---|---|
 | Guests | Friendly (`device-default`) via `speechSynthesis` |
-| Signed-in web | Friendly + 1–2 small/medium Piper voices (Nova, Spark) |
-| Paid mobile app | Those Piper voices **plus** Harbor (Kokoro) and any extra Piper variants |
+| Signed-in web | Friendly + Nova (LibriTTS Piper) |
+| Paid mobile app | Those **plus** Harbor / Spark (Kokoro and other app-only packs) |
 
 `useSpeech` will route `provider: device` → `speechSynthesis`, `provider: bundled` → Piper WASM on web or Sherpa on Capacitor. Fall back to device TTS if a model is missing or synthesis fails. Server validation must only allow IDs selectable **on that client** (a web user cannot save Harbor).
 
@@ -81,14 +81,14 @@ UI copy: web-locked neural cards are “Sign in to use,” not a paywall. Mobile
 - [x] Nested board navigation + phrase bar
 - [x] Device TTS with catalog cards for future bundled voices
 - [x] Customize menus/words (add/edit/delete/reorder + pronunciation)
-- [ ] Web Piper voices for signed-in users (WASM)
+- [x] Web Piper voice for signed-in users (LibriTTS-R medium, WASM)
 - [ ] Capacitor iOS + Android paid app ($10–20) + Sherpa + larger library
 
 ## Phases
 
 1. **Foundations** — public board, auth, onboarding, voice catalog UI — done
 2. **Customization** — edit mode for menus/words (including phonetic “speak as”) — done
-3. **Web neural voices** — login-gated Piper WASM, catalog/platform rules, download-once cache, `useSpeech` router
+3. **Web neural voices** — login-gated LibriTTS Piper WASM, catalog/platform rules, download-once cache, `useSpeech` router
 4. **Mobile packaging + paid store app** — Capacitor, Sherpa-ONNX, reuse web Piper models, mobile-only packs, $10–20 listing
 
 Phase 3 is the only TTS work that belongs on the hosted site. Phase 4 does not reopen the board feature set.

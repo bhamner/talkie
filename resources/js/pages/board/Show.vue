@@ -88,7 +88,14 @@ const props = defineProps<{
     is_guest: boolean;
     can_edit: boolean;
     preferred_name: string | null;
-    voice: { id: string | null; uri: string | null; name: string | null };
+    voice: {
+        id: string | null;
+        uri: string | null;
+        name: string | null;
+        provider?: string | null;
+        engine?: string | null;
+        model?: string | null;
+    };
     highlight?: string | null;
     search_index: SearchIndex;
 }>();

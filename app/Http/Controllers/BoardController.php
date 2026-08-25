@@ -7,6 +7,7 @@ use App\Models\Phrase;
 use App\Models\User;
 use App\Models\Word;
 use App\Services\BoardTemplateService;
+use App\Support\TalkieVoices;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -125,11 +126,7 @@ class BoardController extends Controller
             'is_guest' => $user === null,
             'can_edit' => $user !== null,
             'preferred_name' => $user?->preferred_name,
-            'voice' => [
-                'id' => $user?->settings?->voice_id,
-                'uri' => $user?->settings?->voice_uri,
-                'name' => $user?->settings?->voice_name,
-            ],
+            'voice' => TalkieVoices::current($user),
             'highlight' => $request->query('highlight'),
             'search_index' => Inertia::once(fn () => $this->searchIndex($user)),
         ]);

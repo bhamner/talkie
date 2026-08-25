@@ -25,7 +25,9 @@ const breadcrumbItems: BreadcrumbItem[] = [
     },
 ];
 
-const { speak, selectedVoiceUri, voices: deviceVoices, isSupported } = useSpeech(props.voice.uri);
+const { speak, selectedVoiceUri, voices: deviceVoices, isSupported, isPreparingVoice, voiceError } = useSpeech(
+    props.voice.uri,
+);
 
 const form = useForm({
     voice_id: props.voice.id ?? 'device-default',
@@ -35,27 +37,42 @@ const form = useForm({
 
 const selectedCatalog = computed(() => props.voices.find((voice) => voice.id === form.voice_id));
 
-const resolveDeviceVoice = () => {
-    const preferred =
-        deviceVoices.value.find((voice) => voice.default) ?? deviceVoices.value[0] ?? null;
+const applySelection = (voice: CatalogVoice) => {
+    form.voice_id = voice.id;
+    form.voice_name = voice.name;
 
-    form.voice_uri = preferred?.uri ?? null;
-    form.voice_name = selectedCatalog.value?.name ?? preferred?.name ?? null;
-    selectedVoiceUri.value = preferred?.uri ?? null;
+    if (voice.provider === 'device') {
+        const preferred =
+            deviceVoices.value.find((deviceVoice) => deviceVoice.default) ?? deviceVoices.value[0] ?? null;
+
+        form.voice_uri = preferred?.uri ?? null;
+        selectedVoiceUri.value = preferred?.uri ?? null;
+        return;
+    }
+
+    form.voice_uri = null;
 };
 
-const preview = (voice: CatalogVoice) => {
+const preview = async (voice: CatalogVoice) => {
     if (!voice.selectable) {
         return;
     }
 
-    form.voice_id = voice.id;
-    resolveDeviceVoice();
-    speak(voice.preview_text);
+    applySelection(voice);
+    try {
+        await speak(voice.preview_text, voice, { fallbackToDevice: false });
+    } catch {
+        // voiceError is shown next to the catalog
+    }
 };
 
 const submit = () => {
-    resolveDeviceVoice();
+    const selected = selectedCatalog.value;
+
+    if (selected) {
+        applySelection(selected);
+    }
+
     form.put(route('voice.update'), {
         preserveScroll: true,
     });
@@ -70,16 +87,25 @@ const submit = () => {
             <div class="space-y-6">
                 <HeadingSmall
                     title="Voice"
-                    description="Choose your speaking voice. Premium neural voices download to your device and work offline — coming with the mobile app."
+                    description="Friendly uses this device. Piper is a high quality neural TTS voice that downloads once after you pick it."
                 />
 
                 <div v-if="!isSupported" class="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm">
-                    Speech synthesis is not supported in this browser.
+                    This browser cannot play device voices. You can still pick Piper.
                 </div>
 
-                <form v-else class="space-y-6" @submit.prevent="submit">
-                    <VoiceCatalog v-model="form.voice_id" :voices="voices" @preview="preview" />
-                    <Button type="submit" :disabled="form.processing">Save voice</Button>
+                <form class="space-y-6" @submit.prevent="submit">
+                    <p v-if="isPreparingVoice" class="text-sm font-semibold text-sky-800">
+                        Downloading Piper (~80 MB). This happens once, then previews should be quicker.
+                    </p>
+                    <p v-if="voiceError" class="text-sm font-semibold text-rose-700">{{ voiceError }}</p>
+                    <VoiceCatalog
+                        v-model="form.voice_id"
+                        :voices="voices"
+                        :previewing="isPreparingVoice"
+                        @preview="preview"
+                    />
+                    <Button type="submit" :disabled="form.processing || isPreparingVoice">Save voice</Button>
                 </form>
             </div>
         </SettingsLayout>

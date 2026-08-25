@@ -14,22 +14,18 @@ class VoiceController extends Controller
 {
     public function edit(Request $request): Response
     {
-        $settings = $request->user()->settings;
+        $user = $request->user();
 
         return Inertia::render('settings/Voice', [
-            'voices' => TalkieVoices::all(),
-            'voice' => [
-                'id' => $settings?->voice_id ?? 'device-default',
-                'uri' => $settings?->voice_uri,
-                'name' => $settings?->voice_name,
-            ],
+            'voices' => TalkieVoices::forClient($user),
+            'voice' => TalkieVoices::current($user),
         ]);
     }
 
     public function update(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'voice_id' => ['required', 'string', Rule::in(TalkieVoices::selectableIds())],
+            'voice_id' => ['required', 'string', Rule::in(TalkieVoices::selectableIds($request->user()))],
             'voice_uri' => ['nullable', 'string', 'max:255'],
             'voice_name' => ['nullable', 'string', 'max:255'],
         ]);
