@@ -3,12 +3,12 @@
 return [
     [
         'id' => 'device-default',
-        'name' => 'Friendly',
-        'description' => 'Clear everyday voice for quick communication.',
+        'name' => 'System',
+        'description' => 'the default voice on your device',
         'tier' => 'free',
         'provider' => 'device',
         'platforms' => ['web', 'mobile'],
-        'preview_text' => 'Hello, this is the Friendly voice.',
+        'preview_text' => 'Hello, this is the default voice on your device.',
     ],
     [
         'id' => 'premium-nova',

@@ -35,6 +35,9 @@ test('voice settings page offers piper and not former app-only voices', function
         ->assertInertia(fn ($page) => $page
             ->component('settings/Voice')
             ->has('voices', 2)
+            ->where('voices.0.id', 'device-default')
+            ->where('voices.0.name', 'System')
+            ->where('voices.0.description', 'the default voice on your device')
             ->where('voices.1.id', 'premium-nova')
             ->where('voices.1.name', 'Piper')
             ->where('voices.1.selectable', true)

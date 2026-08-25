@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import HeadingSmall from '@/components/HeadingSmall.vue';
+import { TransitionRoot } from '@headlessui/vue';
 import VoiceCatalog, { type CatalogVoice } from '@/components/VoiceCatalog.vue';
-import { Button } from '@/components/ui/button';
 import { useSpeech } from '@/composables/useSpeech';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
 
 const props = defineProps<{
     voices: CatalogVoice[];
@@ -35,8 +33,6 @@ const form = useForm({
     voice_name: props.voice.name,
 });
 
-const selectedCatalog = computed(() => props.voices.find((voice) => voice.id === form.voice_id));
-
 const applySelection = (voice: CatalogVoice) => {
     form.voice_id = voice.id;
     form.voice_name = voice.name;
@@ -53,29 +49,34 @@ const applySelection = (voice: CatalogVoice) => {
     form.voice_uri = null;
 };
 
-const preview = async (voice: CatalogVoice) => {
-    if (!voice.selectable) {
+const saveVoice = (voiceId: string) => {
+    const voice = props.voices.find((item) => item.id === voiceId);
+
+    if (!voice?.selectable || form.processing) {
         return;
     }
 
     applySelection(voice);
-    try {
-        await speak(voice.preview_text, voice, { fallbackToDevice: false });
-    } catch {
-        // voiceError is shown next to the catalog
-    }
-};
 
-const submit = () => {
-    const selected = selectedCatalog.value;
-
-    if (selected) {
-        applySelection(selected);
+    if (voice.id === (props.voice.id ?? 'device-default')) {
+        return;
     }
 
     form.put(route('voice.update'), {
         preserveScroll: true,
     });
+};
+
+const preview = async (voice: CatalogVoice) => {
+    if (!voice.selectable) {
+        return;
+    }
+
+    try {
+        await speak(voice.preview_text, voice, { fallbackToDevice: false });
+    } catch {
+        // voiceError is shown next to the catalog
+    }
 };
 </script>
 
@@ -85,28 +86,32 @@ const submit = () => {
 
         <SettingsLayout>
             <div class="space-y-6">
-                <HeadingSmall
-                    title="Voice"
-                    description="Friendly uses this device. Piper is a high quality neural TTS voice that downloads once after you pick it."
-                />
-
                 <div v-if="!isSupported" class="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm">
                     This browser cannot play device voices. You can still pick Piper.
                 </div>
 
-                <form class="space-y-6" @submit.prevent="submit">
+                <div class="space-y-6">
                     <p v-if="isPreparingVoice" class="text-sm font-semibold text-sky-800">
                         Downloading Piper (~80 MB). This happens once, then previews should be quicker.
                     </p>
                     <p v-if="voiceError" class="text-sm font-semibold text-rose-700">{{ voiceError }}</p>
                     <VoiceCatalog
-                        v-model="form.voice_id"
+                        :model-value="form.voice_id"
                         :voices="voices"
-                        :previewing="isPreparingVoice"
+                        :previewing="isPreparingVoice || form.processing"
                         @preview="preview"
+                        @update:model-value="saveVoice"
                     />
-                    <Button type="submit" :disabled="form.processing || isPreparingVoice">Save voice</Button>
-                </form>
+                    <TransitionRoot
+                        :show="form.recentlySuccessful"
+                        enter="transition ease-in-out"
+                        enter-from="opacity-0"
+                        leave="transition ease-in-out"
+                        leave-to="opacity-0"
+                    >
+                        <p class="text-sm font-semibold text-emerald-700">Saved</p>
+                    </TransitionRoot>
+                </div>
             </div>
         </SettingsLayout>
     </AppLayout>

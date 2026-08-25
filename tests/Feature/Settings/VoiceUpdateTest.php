@@ -15,7 +15,7 @@ test('voice settings can be updated', function () {
         ->put('/settings/voice', [
             'voice_id' => 'device-default',
             'voice_uri' => 'com.apple.voice.compact.en-US.Samantha',
-            'voice_name' => 'Friendly',
+            'voice_name' => 'System',
         ])
         ->assertRedirect();
 
@@ -23,7 +23,7 @@ test('voice settings can be updated', function () {
 
     expect($user->settings->voice_id)->toBe('device-default')
         ->and($user->settings->voice_uri)->toBe('com.apple.voice.compact.en-US.Samantha')
-        ->and($user->settings->voice_name)->toBe('Friendly');
+        ->and($user->settings->voice_name)->toBe('System');
 });
 
 test('signed in users can select the web libritts voice', function () {

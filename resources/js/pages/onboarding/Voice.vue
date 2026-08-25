@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import VoiceCatalog, { type CatalogVoice } from '@/components/VoiceCatalog.vue';
-import { Button } from '@/components/ui/button';
 import { useSpeech } from '@/composables/useSpeech';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
 
 const props = defineProps<{
     voices: CatalogVoice[];
@@ -24,8 +22,6 @@ const form = useForm({
     voice_name: props.voice.name,
 });
 
-const selectedCatalog = computed(() => props.voices.find((voice) => voice.id === form.voice_id));
-
 const applySelection = (voice: CatalogVoice) => {
     form.voice_id = voice.id;
     form.voice_name = voice.name;
@@ -42,27 +38,27 @@ const applySelection = (voice: CatalogVoice) => {
     form.voice_uri = null;
 };
 
+const chooseVoice = (voiceId: string) => {
+    const voice = props.voices.find((item) => item.id === voiceId);
+
+    if (!voice?.selectable || form.processing) {
+        return;
+    }
+
+    applySelection(voice);
+    form.put(route('onboarding.voice.update'));
+};
+
 const preview = async (voice: CatalogVoice) => {
     if (!voice.selectable) {
         return;
     }
 
-    applySelection(voice);
     try {
         await speak(voice.preview_text, voice, { fallbackToDevice: false });
     } catch {
         // voiceError is shown next to the catalog
     }
-};
-
-const submit = () => {
-    const selected = selectedCatalog.value;
-
-    if (selected) {
-        applySelection(selected);
-    }
-
-    form.put(route('onboarding.voice.update'));
 };
 </script>
 
@@ -73,25 +69,18 @@ const submit = () => {
     >
         <Head title="Choose your voice" />
 
-        <form class="flex flex-col gap-6" @submit.prevent="submit">
+        <div class="flex flex-col gap-6">
             <p v-if="isPreparingVoice" class="text-sm font-semibold text-sky-800">
                 Downloading Piper (~80 MB). This happens once, then previews should be quicker.
             </p>
             <p v-if="voiceError" class="text-sm font-semibold text-rose-700">{{ voiceError }}</p>
             <VoiceCatalog
-                v-model="form.voice_id"
+                :model-value="form.voice_id"
                 :voices="voices"
-                :previewing="isPreparingVoice"
+                :previewing="isPreparingVoice || form.processing"
                 @preview="preview"
+                @update:model-value="chooseVoice"
             />
-
-            <Button
-                type="submit"
-                class="h-12 w-full rounded-full text-base font-extrabold"
-                :disabled="form.processing || isPreparingVoice"
-            >
-                Save and start talking!
-            </Button>
-        </form>
+        </div>
     </AuthBase>
 </template>

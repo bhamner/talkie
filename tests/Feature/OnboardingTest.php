@@ -39,7 +39,7 @@ test('voice onboarding completes personalization', function () {
         ->put('/onboarding/voice', [
             'voice_id' => 'device-default',
             'voice_uri' => 'device-uri',
-            'voice_name' => 'Friendly',
+            'voice_name' => 'System',
         ])
         ->assertRedirect(route('board', absolute: false));
 
