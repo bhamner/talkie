@@ -474,7 +474,7 @@ onBeforeUnmount(() => {
 
     <AppLayout>
         <template #headerActions>
-            <div class="relative w-40 sm:w-56">
+            <div class="relative min-w-0 w-44 sm:w-56">
                 <Search class="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <Input
                     v-model="searchQuery"
@@ -495,7 +495,7 @@ onBeforeUnmount(() => {
             </div>
         </template>
 
-        <div class="flex h-full flex-1 flex-col gap-4">
+        <div class="flex h-full min-h-0 flex-1 flex-col gap-4 landscape:gap-2">
             <div class="flex flex-wrap items-end justify-between gap-3">
                 <div v-if="menu">
                     <h1 class="flex items-center gap-2 text-3xl font-extrabold tracking-tight text-slate-800 sm:text-4xl">
@@ -570,8 +570,8 @@ onBeforeUnmount(() => {
                 </Button>
             </div>
 
-            <div v-else class="sticky top-[4.25rem] z-10 space-y-2">
-                <div class="rounded-3xl border-2 border-sky-200 bg-white/90 p-4 shadow-md backdrop-blur">
+            <div v-else class="sticky top-[4.25rem] z-10 space-y-2 landscape:top-14">
+                <div class="rounded-3xl border-2 border-sky-200 bg-white/90 p-4 shadow-md backdrop-blur landscape:p-2">
                     <div class="mb-3 flex min-h-16 flex-wrap items-center gap-2">
                         <span
                             v-for="(token, index) in phrase"
@@ -648,7 +648,7 @@ onBeforeUnmount(() => {
                 </div>
             </div>
 
-            <div class="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7">
+            <div class="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 landscape:grid-cols-6 landscape:gap-1.5 md:landscape:grid-cols-7">
                 <Link
                     v-if="menu"
                     :href="backHref"

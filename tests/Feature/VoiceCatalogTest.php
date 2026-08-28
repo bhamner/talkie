@@ -23,6 +23,7 @@ test('piper uses the libritts piper model', function () {
         ->and($piper['description'])->toBe('High Quality Neural TTS voice')
         ->and($piper['engine'])->toBe('piper')
         ->and($piper['model'])->toBe('en_US-libritts_r-medium')
+        ->and($piper['speaker_id'])->toBe(0)
         ->and($piper['platforms'])->toContain('web');
 });
 

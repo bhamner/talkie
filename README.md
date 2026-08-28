@@ -2,7 +2,7 @@
 
 Talkie is an open-source children’s speech communication board. Tap word and folder buttons to build phrases and speak them aloud. Guests can use a shared starter board; signing in lets each person save a preferred name, voice, and personalized board.
 
-Built with **Laravel 12**, **Inertia**, **Vue 3**, **Tailwind CSS**, and device text-to-speech. Social login is supported via Laravel Socialite (Google now; Apple later).
+Built with **Laravel 12**, **Inertia**, **Vue 3**, **Tailwind CSS**, and device text-to-speech. Social login is supported via Laravel Socialite (Google now; Apple later). Android is a Capacitor shell around [https://talkie.kids](https://talkie.kids) with native Piper via Sherpa-ONNX.
 
 ## Features
 
@@ -18,6 +18,7 @@ Built with **Laravel 12**, **Inertia**, **Vue 3**, **Tailwind CSS**, and device 
 - Composer 2
 - Node.js 20+ and npm
 - SQLite (default) or MySQL/MariaDB
+- Android Studio + JDK 17+ (only if you are building the Play app)
 
 ## Quick start (developers)
 
@@ -71,13 +72,17 @@ APPLE_KEY_ID=
 APPLE_PRIVATE_KEY=
 ```
 
-Callback URLs must match your `APP_URL`.
+Callback URLs must match your `APP_URL`. The Android app (`kids.talkie`) still uses that HTTPS callback, then hands the session back into the WebView. See [Android Play listing](docs/android-play.md) for signing, SHA-1, and the `.aab` steps.
 
 ### Useful commands
 
 ```bash
 # Run tests
 php artisan test
+
+# Capacitor Android app
+npm run cap:sync
+npm run cap:android
 
 # Format PHP
 ./vendor/bin/pint
@@ -110,7 +115,10 @@ php artisan boost:update
 | ---- | ------- |
 | `app/Http/Controllers` | Board, auth, onboarding, settings |
 | `app/Services/BoardTemplateService.php` | Copies shared template board to a user |
-| `config/talkie_voices.php` | Voice catalog (device TTS + LibriTTS Piper on web, Kokoro mobile-only) |
+| `config/talkie_voices.php` | Voice catalog (device TTS + LibriTTS Piper) |
+| `android/` | Capacitor Android project (`kids.talkie`) |
+| `plugins/sherpa-tts` | Native Piper TTS (Sherpa-ONNX) |
+| `docs/android-play.md` | Signing, OAuth SHA-1, and Play `.aab` steps |
 | `database/seeders/BoardTemplateSeeder.php` | Shared starter words/menus |
 | `resources/js/pages/board` | Full-screen speaking board UI |
 | `resources/js/pages/onboarding` | Name + voice onboarding |

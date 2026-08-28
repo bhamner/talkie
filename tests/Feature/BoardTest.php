@@ -27,6 +27,14 @@ test('guests can view the shared board', function () {
         );
 });
 
+test('board document requests safe-area insets for native shells', function () {
+    $this->seed(BoardTemplateSeeder::class);
+
+    $this->get('/board')
+        ->assertOk()
+        ->assertSee('viewport-fit=cover', false);
+});
+
 test('board search highlight query is passed through to the page', function () {
     $this->seed(BoardTemplateSeeder::class);
 

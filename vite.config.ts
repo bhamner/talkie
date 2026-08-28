@@ -23,6 +23,7 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './resources/js'),
+            '@talkie/sherpa-tts': path.resolve(__dirname, './plugins/sherpa-tts/src/index.ts'),
         },
     },
     optimizeDeps: {

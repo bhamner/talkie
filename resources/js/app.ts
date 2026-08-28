@@ -1,5 +1,6 @@
 import '../css/app.css';
 
+import { Capacitor } from '@capacitor/core';
 import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { DefineComponent } from 'vue';
@@ -25,3 +26,7 @@ createInertiaApp({
 
 // This will set light / dark mode on page load...
 initializeTheme();
+
+if (Capacitor.isNativePlatform()) {
+    void import('./lib/capacitorNative').then((module) => module.bootNativeShell());
+}

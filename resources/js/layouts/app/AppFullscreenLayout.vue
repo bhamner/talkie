@@ -40,10 +40,14 @@ const onGateUnlocked = async () => {
 </script>
 
 <template>
-    <div class="flex min-h-svh flex-col pb-20">
-        <header class="sticky top-0 z-20 border-b border-sky-200/70 bg-white/80 px-2 py-3 backdrop-blur-md sm:px-3">
-            <div class="flex w-full items-center justify-between gap-3">
-                <Link :href="route('board')" class="shrink-0">
+    <div
+        class="flex min-h-svh max-w-full flex-col overflow-x-hidden pb-20 pt-[env(safe-area-inset-top)] landscape:h-dvh landscape:max-h-dvh landscape:min-h-0 landscape:overflow-hidden landscape:pb-[max(5rem,env(safe-area-inset-bottom))]"
+    >
+        <header
+            class="sticky top-0 z-20 border-b border-sky-200/70 bg-white/80 px-2 py-3 backdrop-blur-md sm:px-3 landscape:py-2"
+        >
+            <div class="flex w-full min-w-0 items-center justify-between gap-3">
+                <Link :href="route('board')" class="shrink-0" aria-label="Talkie home">
                     <AppLogo />
                 </Link>
 
@@ -82,14 +86,16 @@ const onGateUnlocked = async () => {
                 </div>
             </div>
 
-            <VoiceProgressBanner class="mt-3" />
+            <VoiceProgressBanner class="mt-3 landscape:mt-2" />
         </header>
 
-        <main class="flex w-full flex-1 flex-col px-2 py-3 sm:px-3 sm:py-4">
+        <main
+            class="flex w-full min-h-0 flex-1 flex-col overflow-x-hidden px-2 py-3 sm:px-3 sm:py-4 landscape:overflow-y-auto landscape:py-2"
+        >
             <slot />
         </main>
 
-        <footer v-if="!user" class="px-2 pb-4 text-center text-sm font-semibold text-sky-700/80 sm:px-3">
+        <footer v-if="!user" class="px-2 pb-4 text-center text-sm font-semibold text-sky-700/80 sm:px-3 landscape:hidden">
             <span class="inline-flex items-center gap-1">
                 <UserRound class="h-4 w-4" />
                 Tap words to speak — personalize anytime to save your voice

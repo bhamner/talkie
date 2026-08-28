@@ -58,7 +58,7 @@ const close = () => {
         <Button
             v-if="!open"
             type="button"
-            class="fixed bottom-4 right-4 z-[190] h-14 rounded-full px-5 text-base font-extrabold shadow-lg sm:bottom-6 sm:right-6"
+            class="fixed z-[190] h-14 rounded-full px-5 text-base font-extrabold shadow-lg bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] sm:bottom-[max(1.5rem,env(safe-area-inset-bottom))] sm:right-[max(1.5rem,env(safe-area-inset-right))]"
             :aria-expanded="open"
             aria-controls="talkie-typing-keyboard"
             @click="open = true"

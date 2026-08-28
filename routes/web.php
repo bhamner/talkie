@@ -31,6 +31,10 @@ Route::middleware('guest')->group(function () {
         ->name('socialite.callback');
 });
 
+Route::get('auth/native/handoff', [SocialiteController::class, 'nativeHandoff'])
+    ->middleware('throttle:20,1')
+    ->name('auth.native.handoff');
+
 Route::middleware('auth')->group(function () {
     Route::get('dashboard', function () {
         return redirect()->route('onboarding.gate');

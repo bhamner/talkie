@@ -7,7 +7,17 @@ export default defineConfigWithVueTs(
     vue.configs['flat/essential'],
     vueTsConfigs.recommended,
     {
-        ignores: ['vendor', 'node_modules', 'public', 'bootstrap/ssr', 'tailwind.config.cjs', 'resources/js/components/ui/*'],
+        ignores: [
+            'vendor',
+            'node_modules',
+            'public',
+            'bootstrap/ssr',
+            'tailwind.config.cjs',
+            'resources/js/components/ui/*',
+            'android',
+            'native/www',
+            'plugins/sherpa-tts/android',
+        ],
     },
     {
         rules: {

@@ -1,26 +1,13 @@
+import { piperProgress, setPiperProgress } from '@/lib/voiceProgress';
+import { Capacitor } from '@capacitor/core';
 import { TtsSession, type Progress, type VoiceId } from '@mintplex-labs/piper-tts-web';
-import { reactive, readonly } from 'vue';
 
 export const LIBRITTS_VOICE_ID = 'en_US-libritts_r-medium';
+export type { PiperPhase } from '@/lib/voiceProgress';
+export { piperProgress };
 
 const ONNX_WASM_BASE = 'https://cdnjs.cloudflare.com/ajax/libs/onnxruntime-web/1.18.0/';
 const PIPER_WASM_BASE = 'https://cdn.jsdelivr.net/npm/@diffusionstudio/piper-wasm@1.0.0/build/piper_phonemize';
-
-export type PiperPhase = 'idle' | 'preparing' | 'downloading';
-
-type PiperProgressState = {
-    phase: PiperPhase;
-    loaded: number;
-    total: number;
-};
-
-const progressState = reactive<PiperProgressState>({
-    phase: 'idle',
-    loaded: 0,
-    total: 0,
-});
-
-export const piperProgress = readonly(progressState);
 
 let sessionPromise: Promise<TtsSession> | null = null;
 let sessionReady = false;
@@ -28,17 +15,17 @@ let inflightSpeaks = 0;
 let currentAudio: HTMLAudioElement | null = null;
 let onnxCreatePatched = false;
 
+export const usesNativePiper = (): boolean => Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
+
 const markIdleIfQuiet = (): void => {
     if (inflightSpeaks === 0 && sessionReady) {
-        progressState.phase = 'idle';
-        progressState.loaded = 0;
-        progressState.total = 0;
+        setPiperProgress('idle');
     }
 };
 
 const markWaiting = (): void => {
-    if (progressState.phase === 'idle') {
-        progressState.phase = 'preparing';
+    if (piperProgress.phase === 'idle') {
+        setPiperProgress('preparing');
     }
 };
 
@@ -47,9 +34,7 @@ const onDownloadProgress = (progress: Progress): void => {
         return;
     }
 
-    progressState.phase = 'downloading';
-    progressState.loaded = progress.loaded;
-    progressState.total = progress.total;
+    setPiperProgress('downloading', progress.loaded, progress.total);
 };
 
 type OnnxWasmRuntime = {
@@ -65,6 +50,11 @@ type OnnxWasmRuntime = {
 };
 
 export function cancelPiperPlayback(): void {
+    if (usesNativePiper()) {
+        void import('@/lib/sherpaTts').then(({ cancelSherpa }) => cancelSherpa());
+        return;
+    }
+
     currentAudio?.pause();
     currentAudio = null;
 }
@@ -149,17 +139,15 @@ const sessionFor = (voiceId: VoiceId): Promise<TtsSession> => {
 
             if (inflightSpeaks === 0) {
                 markIdleIfQuiet();
-            } else if (progressState.phase === 'downloading') {
-                progressState.phase = 'preparing';
+            } else if (piperProgress.phase === 'downloading') {
+                setPiperProgress('preparing', piperProgress.loaded, piperProgress.total);
             }
 
             return session;
         }).catch((error: unknown) => {
             sessionPromise = null;
             sessionReady = false;
-            progressState.phase = 'idle';
-            progressState.loaded = 0;
-            progressState.total = 0;
+            setPiperProgress('idle');
             throw error;
         });
     }
@@ -167,11 +155,24 @@ const sessionFor = (voiceId: VoiceId): Promise<TtsSession> => {
     return sessionPromise;
 };
 
-export function warmupPiper(voiceId: string = LIBRITTS_VOICE_ID): Promise<TtsSession> {
-    return sessionFor(voiceId as VoiceId);
+export async function warmupPiper(voiceId: string = LIBRITTS_VOICE_ID): Promise<void> {
+    if (usesNativePiper()) {
+        const { warmupSherpa } = await import('@/lib/sherpaTts');
+        await warmupSherpa(voiceId);
+        return;
+    }
+
+    await sessionFor(voiceId as VoiceId);
 }
 
-export async function speakPiper(text: string, voiceId: string = LIBRITTS_VOICE_ID): Promise<void> {
+export async function speakPiper(text: string, voiceId: string = LIBRITTS_VOICE_ID, speakerId = 0): Promise<void> {
+    if (usesNativePiper()) {
+        const { cancelSherpa, speakSherpa } = await import('@/lib/sherpaTts');
+        await cancelSherpa();
+        await speakSherpa(text, voiceId, speakerId);
+        return;
+    }
+
     cancelPiperPlayback();
     inflightSpeaks += 1;
 

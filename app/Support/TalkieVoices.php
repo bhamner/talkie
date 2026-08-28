@@ -53,7 +53,7 @@ class TalkieVoices
     }
 
     /**
-     * @return array{id: string|null, uri: string|null, name: string|null, provider: string, engine: string|null, model: string|null}
+     * @return array{id: string|null, uri: string|null, name: string|null, provider: string, engine: string|null, model: string|null, speaker_id: int|null}
      */
     public static function current(?User $user): array
     {
@@ -67,6 +67,7 @@ class TalkieVoices
             'provider' => $catalog['provider'] ?? 'device',
             'engine' => $catalog['engine'] ?? null,
             'model' => $catalog['model'] ?? null,
+            'speaker_id' => $catalog['speaker_id'] ?? null,
         ];
     }
 

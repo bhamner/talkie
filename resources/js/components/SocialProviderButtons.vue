@@ -1,13 +1,29 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
+import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
 
 defineProps<{
     providers: string[];
 }>();
 
+const isNative = Capacitor.isNativePlatform();
+
 const labels: Record<string, string> = {
     google: 'Continue with Google',
     apple: 'Continue with Apple',
+};
+
+const nativeRedirectUrl = (provider: string): string => {
+    const href = route('socialite.redirect', provider);
+    const url = href.startsWith('http') ? new URL(href) : new URL(href, window.location.origin);
+    url.searchParams.set('native', '1');
+
+    return url.toString();
+};
+
+const openNativeProvider = async (provider: string): Promise<void> => {
+    await Browser.open({ url: nativeRedirectUrl(provider) });
 };
 </script>
 
@@ -27,12 +43,15 @@ const labels: Record<string, string> = {
                 </span>
             </Button>
             <Button
-                v-else
+                v-else-if="isNative"
                 type="button"
                 variant="outline"
                 class="h-12 w-full rounded-full text-base font-extrabold"
-                as-child
+                @click="openNativeProvider(provider)"
             >
+                {{ labels[provider] ?? `Continue with ${provider}` }}
+            </Button>
+            <Button v-else type="button" variant="outline" class="h-12 w-full rounded-full text-base font-extrabold" as-child>
                 <a :href="route('socialite.redirect', provider)">
                     {{ labels[provider] ?? `Continue with ${provider}` }}
                 </a>

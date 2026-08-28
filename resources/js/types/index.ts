@@ -23,6 +23,7 @@ export interface SharedVoice {
     provider?: string | null;
     engine?: string | null;
     model?: string | null;
+    speaker_id?: number | null;
 }
 
 export interface SharedData {

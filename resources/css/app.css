@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+    overflow-x: hidden;
+}
+
 body,
 html {
     --font-sans:
@@ -95,7 +99,8 @@ html {
             radial-gradient(circle at 80% 90%, hsl(330 85% 75% / 0.22), transparent 30%),
             radial-gradient(circle at 5% 85%, hsl(142 71% 70% / 0.2), transparent 28%);
         background-attachment: fixed;
-        min-height: 100vh;
+        min-height: 100dvh;
+        overflow-x: hidden;
     }
 
     body.talkie-nested-board {
@@ -118,7 +123,7 @@ html {
 }
 
 .talkie-tile {
-    @apply flex min-h-[4.5rem] flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-center text-sm font-extrabold sm:min-h-20 sm:text-base;
+    @apply flex min-h-[4.5rem] flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-center text-sm font-extrabold sm:min-h-20 sm:text-base landscape:min-h-12 landscape:gap-0.5 landscape:py-1 landscape:text-xs sm:landscape:min-h-14 sm:landscape:text-sm;
 }
 
 .talkie-tile-highlight {

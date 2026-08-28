@@ -25,10 +25,30 @@ pnpm-debug.log*
 .phpunit.result.cache
 .phpunit.cache
 .phpactor.json
+/plugins/sherpa-tts/android/build
+/plugins/sherpa-tts/android/.gradle
 
 # Homestead / Vagrant
 Homestead.json
 Homestead.yaml
+
+# Android / Capacitor
+/android/app/build
+/android/app/.cxx
+/android/build
+/android/.gradle
+/android/captures
+/android/local.properties
+/android/*.iml
+/android/.idea
+*.apk
+*.aab
+*.ap_
+*.keystore
+*.jks
+keystore.properties
+google-services.json
+/android/gradle/gradle-daemon-jvm.properties
 
 # OS / editors
 .DS_Store
