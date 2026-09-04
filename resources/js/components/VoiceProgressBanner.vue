@@ -1,9 +1,36 @@
 <script setup lang="ts">
 import { piperProgress } from '@/lib/piperTts';
 import { LoaderCircle } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { computed, onUnmounted, ref, watch } from 'vue';
 
-const visible = computed(() => piperProgress.phase === 'downloading' || piperProgress.phase === 'preparing');
+const PREPARING_BANNER_DELAY_MS = 800;
+const showPreparing = ref(false);
+let preparingTimer = 0;
+
+watch(
+    () => piperProgress.phase,
+    (phase) => {
+        window.clearTimeout(preparingTimer);
+
+        if (phase === 'preparing') {
+            preparingTimer = window.setTimeout(() => {
+                if (piperProgress.phase === 'preparing') {
+                    showPreparing.value = true;
+                }
+            }, PREPARING_BANNER_DELAY_MS);
+            return;
+        }
+
+        showPreparing.value = false;
+    },
+    { immediate: true },
+);
+
+onUnmounted(() => {
+    window.clearTimeout(preparingTimer);
+});
+
+const visible = computed(() => piperProgress.phase === 'downloading' || showPreparing.value);
 
 const percent = computed(() => {
     if (piperProgress.phase !== 'downloading' || piperProgress.total <= 0) {
@@ -22,7 +49,7 @@ const title = computed(() => {
         return 'Downloading Piper voice…';
     }
 
-    return 'Getting Piper ready…';
+    return 'Loading Piper on this device…';
 });
 </script>
 
@@ -39,7 +66,7 @@ const title = computed(() => {
             <div class="min-w-0">
                 <p class="text-sm font-extrabold">{{ title }}</p>
                 <p class="mt-1 text-xs font-semibold text-sky-800">
-                    This happens once on this device (~80 MB). Keep this page open — words will speak when it finishes.
+                    First time on this device takes a minute (download + load, ~80 MB). The emulator is slower than a phone. Keep this page open — after this, words speak right away.
                 </p>
             </div>
         </div>

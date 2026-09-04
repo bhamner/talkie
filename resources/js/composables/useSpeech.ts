@@ -1,5 +1,6 @@
 import { cancelPiperPlayback, LIBRITTS_VOICE_ID, piperProgress, prefersPiperOnNative, speakPiper, warmupPiper } from '@/lib/piperTts';
 import { type SharedData } from '@/types';
+import { Capacitor } from '@capacitor/core';
 import { usePage } from '@inertiajs/vue3';
 import { computed, onMounted, ref } from 'vue';
 
@@ -123,6 +124,10 @@ export function useSpeech(initialVoiceUri: string | null = null) {
         }
 
         const current = page.props.voice;
+        if (!Capacitor.isNativePlatform()) {
+            return;
+        }
+
         if (current?.engine === 'piper' && current.model) {
             void warmupPiper(current.model);
         } else if (prefersPiperOnNative(current?.id)) {

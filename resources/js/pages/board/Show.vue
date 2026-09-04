@@ -495,8 +495,8 @@ onBeforeUnmount(() => {
             </div>
         </template>
 
-        <div class="flex h-full min-h-0 flex-1 flex-col gap-4 landscape:gap-2">
-            <div class="flex flex-wrap items-end justify-between gap-3">
+        <div class="flex h-full min-h-0 flex-1 flex-col gap-2 landscape:gap-1.5">
+            <div v-if="menu || ancestors.length" class="flex flex-wrap items-end justify-between gap-3">
                 <div v-if="menu">
                     <h1 class="flex items-center gap-2 text-3xl font-extrabold tracking-tight text-slate-800 sm:text-4xl">
                         <BoardMenuIcon :icon="menu.icon" :size="40" icon-class="text-orange-500" />
@@ -548,7 +548,7 @@ onBeforeUnmount(() => {
 
             <div
                 v-if="editMode && can_edit"
-                class="sticky top-[4.25rem] z-10 flex flex-wrap items-center justify-between gap-2 rounded-3xl border-2 border-orange-200 bg-orange-50/95 px-4 py-3 shadow-md backdrop-blur"
+                class="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 rounded-3xl border-2 border-orange-200 bg-orange-50/95 px-4 py-3 shadow-md backdrop-blur"
             >
                 <div class="flex flex-wrap gap-2">
                     <Button type="button" class="h-11 rounded-full px-4 font-extrabold" @click="openAddWord">
@@ -570,7 +570,7 @@ onBeforeUnmount(() => {
                 </Button>
             </div>
 
-            <div v-else class="sticky top-[4.25rem] z-10 space-y-2 landscape:top-14">
+            <div v-else class="sticky top-0 z-10 space-y-2 bg-background/95 backdrop-blur">
                 <div class="rounded-3xl border-2 border-sky-200 bg-white/90 p-4 shadow-md backdrop-blur landscape:p-2">
                     <div class="mb-3 flex min-h-16 flex-wrap items-center gap-2">
                         <span

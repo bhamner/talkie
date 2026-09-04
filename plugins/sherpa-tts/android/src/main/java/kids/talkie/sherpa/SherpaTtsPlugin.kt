@@ -32,6 +32,9 @@ class SherpaTtsPlugin : Plugin() {
     private var cancelled = false
 
     @Volatile
+    private var stopPlayback = false
+
+    @Volatile
     private var track: AudioTrack? = null
 
     private var tts: OfflineTts? = null
@@ -72,6 +75,7 @@ class SherpaTtsPlugin : Plugin() {
 
         executor.execute {
             try {
+                stopPlayback = false
                 cancelled = false
                 val engine = ensureReady(model)
                 emitProgress("idle", 0, 0)
@@ -87,7 +91,7 @@ class SherpaTtsPlugin : Plugin() {
 
     @PluginMethod
     fun cancel(call: PluginCall) {
-        cancelled = true
+        stopPlayback = true
         stopTrack()
         call.resolve()
     }
@@ -220,20 +224,31 @@ class SherpaTtsPlugin : Plugin() {
     }
 
     private fun play(engine: OfflineTts, text: String, speakerId: Int) {
-        val sampleRate = engine.sampleRate()
-        val bufferSize = AudioTrack.getMinBufferSize(
+        val generated = engine.generate(text, speakerId, 1.0f)
+        val samples = generated.samples
+        if (samples.isEmpty()) {
+            throw IllegalStateException("Piper generated no audio")
+        }
+
+        val pcm = Pcm16.fromFloatSamples(samples)
+        val sampleRate = generated.sampleRate
+        val minBuffer = AudioTrack.getMinBufferSize(
             sampleRate,
             AudioFormat.CHANNEL_OUT_MONO,
-            AudioFormat.ENCODING_PCM_FLOAT,
+            AudioFormat.ENCODING_PCM_16BIT,
         )
+        if (minBuffer <= 0) {
+            throw IllegalStateException("AudioTrack rejected sample rate $sampleRate")
+        }
 
+        val bufferSize = minBuffer
         val audioTrack = AudioTrack(
             AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_MEDIA)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                 .build(),
             AudioFormat.Builder()
-                .setEncoding(AudioFormat.ENCODING_PCM_FLOAT)
+                .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
                 .setSampleRate(sampleRate)
                 .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
                 .build(),
@@ -246,13 +261,17 @@ class SherpaTtsPlugin : Plugin() {
         audioTrack.play()
 
         try {
-            engine.generateWithCallback(text, speakerId, 1.0f) { samples ->
-                if (cancelled) {
-                    0
-                } else {
-                    audioTrack.write(samples, 0, samples.size, AudioTrack.WRITE_BLOCKING)
-                    1
+            var offset = 0
+            while (offset < pcm.size && !stopPlayback) {
+                val written = audioTrack.write(pcm, offset, pcm.size - offset)
+                if (written <= 0) {
+                    throw IllegalStateException("AudioTrack write failed ($written)")
                 }
+                offset += written
+            }
+
+            if (!stopPlayback) {
+                drain(audioTrack, pcm.size, sampleRate)
             }
         } finally {
             if (track === audioTrack) {
@@ -260,6 +279,20 @@ class SherpaTtsPlugin : Plugin() {
             } else {
                 audioTrack.release()
             }
+        }
+    }
+
+    private fun drain(audioTrack: AudioTrack, frames: Int, sampleRate: Int) {
+        val timeoutMs = (frames * 1000L / sampleRate.coerceAtLeast(1)) + 250L
+        val started = System.currentTimeMillis()
+        while (!stopPlayback && audioTrack.playState == AudioTrack.PLAYSTATE_PLAYING) {
+            if (audioTrack.playbackHeadPosition >= frames - 1) {
+                break
+            }
+            if (System.currentTimeMillis() - started > timeoutMs) {
+                break
+            }
+            Thread.sleep(20)
         }
     }
 
@@ -271,8 +304,10 @@ class SherpaTtsPlugin : Plugin() {
         }
 
         try {
-            current.pause()
-            current.flush()
+            if (stopPlayback) {
+                current.pause()
+                current.flush()
+            }
             current.stop()
         } catch (_: IllegalStateException) {
             // Already released or not initialized.

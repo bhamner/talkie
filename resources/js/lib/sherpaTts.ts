@@ -15,7 +15,6 @@ const ensureProgressListener = async (): Promise<void> => {
 };
 
 export async function warmupSherpa(model: string): Promise<void> {
-    setPiperProgress('preparing');
     await ensureProgressListener();
     await SherpaTts.warmup({ model });
 }

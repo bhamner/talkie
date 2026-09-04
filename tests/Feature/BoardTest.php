@@ -53,6 +53,16 @@ test('board document requests safe-area insets for native shells', function () {
         ->assertSee('viewport-fit=cover', false);
 });
 
+test('phrase bar sticks to the top of the scrolling board', function () {
+    $show = file_get_contents(resource_path('js/pages/board/Show.vue'));
+    $layout = file_get_contents(resource_path('js/layouts/app/AppFullscreenLayout.vue'));
+
+    expect($show)->toContain('sticky top-0')
+        ->and($show)->not->toContain('top-[4.25rem]')
+        ->and($layout)->toContain('overflow-y-auto')
+        ->and($layout)->toContain('pt-[10px]');
+});
+
 test('board search highlight query is passed through to the page', function () {
     $this->seed(BoardTemplateSeeder::class);
 

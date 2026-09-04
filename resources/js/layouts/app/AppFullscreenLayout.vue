@@ -41,10 +41,10 @@ const onGateUnlocked = async () => {
 
 <template>
     <div
-        class="flex min-h-svh max-w-full flex-col overflow-x-hidden pb-20 pt-[env(safe-area-inset-top)] landscape:h-dvh landscape:max-h-dvh landscape:min-h-0 landscape:overflow-hidden landscape:pb-[max(5rem,env(safe-area-inset-bottom))]"
+        class="flex h-dvh max-h-dvh min-h-0 max-w-full flex-col overflow-hidden pt-[env(safe-area-inset-top)] pb-[max(5rem,env(safe-area-inset-bottom))]"
     >
         <header
-            class="sticky top-0 z-20 border-b border-sky-200/70 bg-white/80 px-2 py-3 backdrop-blur-md sm:px-3 landscape:py-2"
+            class="z-20 shrink-0 border-b border-sky-200/70 bg-white/80 px-2 py-3 backdrop-blur-md sm:px-3 landscape:py-2"
         >
             <div class="flex w-full min-w-0 items-center justify-between gap-3">
                 <Link :href="route('board')" class="shrink-0" aria-label="Talkie home">
@@ -90,12 +90,12 @@ const onGateUnlocked = async () => {
         </header>
 
         <main
-            class="flex w-full min-h-0 flex-1 flex-col overflow-x-hidden px-2 py-3 sm:px-3 sm:py-4 landscape:overflow-y-auto landscape:py-2"
+            class="flex min-h-0 w-full flex-1 flex-col overflow-x-hidden overflow-y-auto px-2 pt-[10px] pb-3 sm:px-3 landscape:pb-2"
         >
             <slot />
         </main>
 
-        <footer v-if="!user" class="px-2 pb-4 text-center text-sm font-semibold text-sky-700/80 sm:px-3 landscape:hidden">
+        <footer v-if="!user" class="shrink-0 px-2 pb-4 text-center text-sm font-semibold text-sky-700/80 sm:px-3 landscape:hidden">
             <span class="inline-flex items-center gap-1">
                 <UserRound class="h-4 w-4" />
                 Tap words to speak — personalize anytime to save your voice

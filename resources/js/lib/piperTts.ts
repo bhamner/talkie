@@ -20,6 +20,8 @@ export const usesNativePiper = (): boolean => Capacitor.isNativePlatform() && Ca
 export const prefersPiperOnNative = (savedVoiceId: string | null | undefined): boolean =>
     Capacitor.isNativePlatform() && (savedVoiceId == null || savedVoiceId === '');
 
+let nativeWarmed = false;
+
 const markIdleIfQuiet = (): void => {
     if (inflightSpeaks === 0 && sessionReady) {
         setPiperProgress('idle');
@@ -27,7 +29,7 @@ const markIdleIfQuiet = (): void => {
 };
 
 const markWaiting = (): void => {
-    if (piperProgress.phase === 'idle') {
+    if (usesNativePiper() && piperProgress.phase === 'idle') {
         setPiperProgress('preparing');
     }
 };
@@ -160,8 +162,17 @@ const sessionFor = (voiceId: VoiceId): Promise<TtsSession> => {
 
 export async function warmupPiper(voiceId: string = LIBRITTS_VOICE_ID): Promise<void> {
     if (usesNativePiper()) {
+        if (nativeWarmed) {
+            return;
+        }
+
         const { warmupSherpa } = await import('@/lib/sherpaTts');
         await warmupSherpa(voiceId);
+        nativeWarmed = true;
+        return;
+    }
+
+    if (sessionReady) {
         return;
     }
 
