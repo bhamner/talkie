@@ -1,5 +1,6 @@
 package kids.talkie;
 
+import android.app.Activity;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.View;
@@ -10,8 +11,20 @@ import androidx.core.view.WindowInsetsCompat;
 import com.getcapacitor.CapacitorWebView;
 
 public class TalkieWebView extends CapacitorWebView {
+    private final DeviceTts deviceTts;
+
     public TalkieWebView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        deviceTts = new DeviceTts(context);
+        addJavascriptInterface(new DeviceTtsBridge(deviceTts), DeviceTtsBridge.NAME);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        if (getContext() instanceof Activity activity && activity.isFinishing()) {
+            deviceTts.shutdown();
+        }
+        super.onDetachedFromWindow();
     }
 
     @Override

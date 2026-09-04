@@ -16,6 +16,43 @@ test('guests cannot select neural voices', function () {
     expect($ids)->toBe(['device-default']);
 });
 
+test('guests speak with the device voice', function () {
+    expect(TalkieVoices::current(null)['provider'])->toBe('device')
+        ->and(TalkieVoices::current(null)['engine'])->toBeNull();
+});
+
+test('native app guests speak with piper', function () {
+    expect(TalkieVoices::current(null, true))->toMatchArray([
+        'id' => 'premium-nova',
+        'name' => 'Piper',
+        'provider' => 'bundled',
+        'engine' => 'piper',
+        'model' => 'en_US-libritts_r-medium',
+        'speaker_id' => 0,
+    ]);
+});
+
+test('native apps keep a saved device voice', function () {
+    $user = createOnboardedUser();
+
+    expect(TalkieVoices::current($user, true)['provider'])->toBe('device')
+        ->and(TalkieVoices::current($user, true)['engine'])->toBeNull()
+        ->and(TalkieVoices::current($user, true)['id'])->toBe('device-default');
+});
+
+test('talkie native user agents are detected', function () {
+    expect(TalkieVoices::isNativeUserAgent('Mozilla/5.0 Chrome/124.0.0.0 Mobile Safari/537.36 TalkieNative/android'))->toBeTrue()
+        ->and(TalkieVoices::isNativeUserAgent('Mozilla/5.0 TalkieNative/ios'))->toBeTrue()
+        ->and(TalkieVoices::isNativeUserAgent('Mozilla/5.0 (Linux; Android 14; Pixel 8) Chrome/124.0.0.0 Mobile Safari/537.36'))->toBeFalse();
+});
+
+test('native client header is treated as the native app', function () {
+    request()->headers->set('X-Talkie-Client', 'ios');
+
+    expect(TalkieVoices::isNativeRequest())->toBeTrue()
+        ->and(TalkieVoices::current(null)['engine'])->toBe('piper');
+});
+
 test('piper uses the libritts piper model', function () {
     $piper = TalkieVoices::find('premium-nova');
 

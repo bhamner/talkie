@@ -1,4 +1,4 @@
-import { cancelPiperPlayback, piperProgress, speakPiper, warmupPiper } from '@/lib/piperTts';
+import { cancelPiperPlayback, LIBRITTS_VOICE_ID, piperProgress, prefersPiperOnNative, speakPiper, warmupPiper } from '@/lib/piperTts';
 import { type SharedData } from '@/types';
 import { usePage } from '@inertiajs/vue3';
 import { computed, onMounted, ref } from 'vue';
@@ -75,10 +75,11 @@ export function useSpeech(initialVoiceUri: string | null = null) {
             return;
         }
 
-        const provider = catalog?.provider ?? page.props.voice?.provider ?? 'device';
-        const engine = catalog?.engine ?? page.props.voice?.engine ?? null;
-        const model = catalog?.model ?? page.props.voice?.model ?? null;
-        const speakerId = catalog?.speakerId ?? catalog?.speaker_id ?? page.props.voice?.speaker_id ?? 0;
+        const useNativePiperDefault = !catalog && prefersPiperOnNative(page.props.voice?.id);
+        const provider = catalog?.provider ?? (useNativePiperDefault ? 'bundled' : page.props.voice?.provider) ?? 'device';
+        const engine = catalog?.engine ?? (useNativePiperDefault ? 'piper' : page.props.voice?.engine) ?? null;
+        const model = catalog?.model ?? (useNativePiperDefault ? LIBRITTS_VOICE_ID : page.props.voice?.model) ?? null;
+        const speakerId = catalog?.speakerId ?? catalog?.speaker_id ?? (useNativePiperDefault ? 0 : page.props.voice?.speaker_id) ?? 0;
         const fallbackToDevice = options.fallbackToDevice ?? true;
 
         if (provider === 'bundled' && engine === 'piper' && model) {
@@ -124,6 +125,8 @@ export function useSpeech(initialVoiceUri: string | null = null) {
         const current = page.props.voice;
         if (current?.engine === 'piper' && current.model) {
             void warmupPiper(current.model);
+        } else if (prefersPiperOnNative(current?.id)) {
+            void warmupPiper(LIBRITTS_VOICE_ID);
         }
     });
 

@@ -4,6 +4,7 @@ const config: CapacitorConfig = {
     appId: 'kids.talkie',
     appName: 'Talkie',
     webDir: 'native/www',
+    appendUserAgent: 'TalkieNative',
     server: {
         url: 'https://www.talkie.kids',
         androidScheme: 'https',
@@ -14,7 +15,7 @@ const config: CapacitorConfig = {
         allowMixedContent: false,
         adjustMarginsForEdgeToEdge: 'force',
         overrideUserAgent:
-            'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+            'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 TalkieNative/android',
     },
 };
 

@@ -8,6 +8,10 @@ class TalkieVoices
 {
     public const PLATFORM_WEB = 'web';
 
+    public const PIPER_ID = 'premium-nova';
+
+    public const NATIVE_USER_AGENT_MARK = 'TalkieNative';
+
     /**
      * @return list<array<string, mixed>>
      */
@@ -52,18 +56,40 @@ class TalkieVoices
             ->all();
     }
 
+    public static function isNativeUserAgent(?string $userAgent): bool
+    {
+        return str_contains(strtolower((string) $userAgent), strtolower(self::NATIVE_USER_AGENT_MARK));
+    }
+
+    public static function isNativeRequest(): bool
+    {
+        $client = strtolower((string) request()->header('X-Talkie-Client'));
+
+        if (in_array($client, ['android', 'ios', 'native'], true)) {
+            return true;
+        }
+
+        return self::isNativeUserAgent(request()->userAgent());
+    }
+
     /**
      * @return array{id: string|null, uri: string|null, name: string|null, provider: string, engine: string|null, model: string|null, speaker_id: int|null}
      */
-    public static function current(?User $user): array
+    public static function current(?User $user, ?bool $nativeApp = null): array
     {
+        $nativeApp ??= self::isNativeRequest();
         $id = $user?->settings?->voice_id;
         $catalog = $id ? self::find($id) : null;
+
+        if ($catalog === null && $nativeApp) {
+            $catalog = self::find(self::PIPER_ID);
+            $id = $catalog['id'] ?? self::PIPER_ID;
+        }
 
         return [
             'id' => $id,
             'uri' => $user?->settings?->voice_uri,
-            'name' => $user?->settings?->voice_name,
+            'name' => $user?->settings?->voice_name ?? ($catalog['name'] ?? null),
             'provider' => $catalog['provider'] ?? 'device',
             'engine' => $catalog['engine'] ?? null,
             'model' => $catalog['model'] ?? null,

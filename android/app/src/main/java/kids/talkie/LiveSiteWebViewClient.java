@@ -45,11 +45,13 @@ final class LiveSiteWebViewClient extends WebViewClient {
     @Override
     public void onPageStarted(WebView view, String url, Bitmap favicon) {
         inner.onPageStarted(view, url, favicon);
+        DeviceTtsScript.install(view);
     }
 
     @Override
     public void onPageFinished(WebView view, String url) {
         inner.onPageFinished(view, url);
+        DeviceTtsScript.install(view);
     }
 
     @Override

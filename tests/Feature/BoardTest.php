@@ -24,6 +24,24 @@ test('guests can view the shared board', function () {
             ->where('menus.21.name', 'Colors')
             ->where('menus.22.name', 'Shapes')
             ->where('menus.23.name', 'Numbers')
+            ->where('voice.provider', 'device')
+        );
+});
+
+test('native app guests receive piper as the board voice', function () {
+    $this->seed(BoardTemplateSeeder::class);
+
+    $this->withHeaders([
+        'User-Agent' => 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36 TalkieNative/android',
+    ])->get('/board')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('board/Show')
+            ->where('is_guest', true)
+            ->where('voice.id', 'premium-nova')
+            ->where('voice.provider', 'bundled')
+            ->where('voice.engine', 'piper')
+            ->where('voice.model', 'en_US-libritts_r-medium')
         );
 });
 

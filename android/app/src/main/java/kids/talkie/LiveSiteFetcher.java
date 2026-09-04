@@ -74,6 +74,8 @@ final class LiveSiteFetcher {
                 builder.header("Cookie", cookie);
             }
 
+            builder.header("X-Talkie-Client", "android");
+
             try (Response response = SITE_CLIENT.newCall(builder.build()).execute()) {
                 for (String setCookie : response.headers("Set-Cookie")) {
                     CookieManager.getInstance().setCookie(url, setCookie);

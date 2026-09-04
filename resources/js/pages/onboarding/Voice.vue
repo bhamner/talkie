@@ -2,7 +2,7 @@
 import VoiceCatalog, { type CatalogVoice } from '@/components/VoiceCatalog.vue';
 import VoiceProgressBanner from '@/components/VoiceProgressBanner.vue';
 import { useSpeech } from '@/composables/useSpeech';
-import { warmupPiper } from '@/lib/piperTts';
+import { prefersPiperOnNative, warmupPiper } from '@/lib/piperTts';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 
@@ -19,9 +19,9 @@ const props = defineProps<{
 const { speak, selectedVoiceUri, voices: deviceVoices, isPreparingVoice, voiceError } = useSpeech(props.voice.uri);
 
 const form = useForm({
-    voice_id: props.voice.id ?? 'device-default',
+    voice_id: prefersPiperOnNative(props.voice.id) ? 'premium-nova' : (props.voice.id ?? 'device-default'),
     voice_uri: props.voice.uri,
-    voice_name: props.voice.name,
+    voice_name: prefersPiperOnNative(props.voice.id) ? (props.voice.name ?? 'Piper') : props.voice.name,
 });
 
 const applySelection = (voice: CatalogVoice) => {

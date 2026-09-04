@@ -17,6 +17,9 @@ let onnxCreatePatched = false;
 
 export const usesNativePiper = (): boolean => Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
 
+export const prefersPiperOnNative = (savedVoiceId: string | null | undefined): boolean =>
+    Capacitor.isNativePlatform() && (savedVoiceId == null || savedVoiceId === '');
+
 const markIdleIfQuiet = (): void => {
     if (inflightSpeaks === 0 && sessionReady) {
         setPiperProgress('idle');
