@@ -119,7 +119,7 @@ const submit = () => {
                             <p class="text-sm font-bold uppercase tracking-wide text-violet-600">Phrases</p>
                             <h2 class="text-2xl font-extrabold text-slate-800 sm:text-3xl">{{ menuName }}</h2>
                         </div>
-                        <Button type="button" variant="ghost" size="icon" class="shrink-0 rounded-full" @click="open = false">
+                        <Button type="button" variant="ghost" size="icon" class="shrink-0 rounded-full text-slate-800" @click="open = false">
                             <X class="h-5 w-5" />
                             <span class="sr-only">Close phrases</span>
                         </Button>

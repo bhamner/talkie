@@ -50,7 +50,8 @@ test('board document requests safe-area insets for native shells', function () {
 
     $this->get('/board')
         ->assertOk()
-        ->assertSee('viewport-fit=cover', false);
+        ->assertSee('viewport-fit=cover', false)
+        ->assertSee('<meta name="color-scheme" content="light">', false);
 });
 
 test('phrase bar sticks to the top of the scrolling board', function () {

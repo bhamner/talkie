@@ -9,9 +9,9 @@ export const buttonVariants = cva(
             variant: {
                 default: 'bg-primary text-primary-foreground shadow hover:bg-primary/90',
                 destructive: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
-                outline: 'border-2 border-sky-200 bg-white shadow-sm hover:bg-sky-50 hover:text-sky-900',
+                outline: 'border-2 border-sky-200 bg-white text-slate-800 shadow-sm hover:bg-sky-50 hover:text-sky-900',
                 secondary: 'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/90',
-                ghost: 'hover:bg-sky-100 hover:text-sky-900',
+                ghost: 'text-slate-800 hover:bg-sky-100 hover:text-sky-900',
                 link: 'text-primary underline-offset-4 hover:underline',
             },
             size: {
