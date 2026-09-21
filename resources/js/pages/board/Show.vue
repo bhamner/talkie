@@ -548,7 +548,7 @@ onBeforeUnmount(() => {
 
             <div
                 v-if="editMode && can_edit"
-                class="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 rounded-3xl border-2 border-orange-200 bg-orange-50/95 px-4 py-3 shadow-md backdrop-blur"
+                class="z-10 flex shrink-0 flex-wrap items-center justify-between gap-2 rounded-3xl border-2 border-orange-200 bg-orange-50/95 px-4 py-3 shadow-md backdrop-blur"
             >
                 <div class="flex flex-wrap gap-2">
                     <Button type="button" class="h-11 rounded-full px-4 font-extrabold" @click="openAddWord">
@@ -570,7 +570,7 @@ onBeforeUnmount(() => {
                 </Button>
             </div>
 
-            <div v-else class="sticky top-0 z-10 space-y-1 bg-background/95 backdrop-blur sm:space-y-2">
+            <div v-else class="z-10 shrink-0 space-y-1 bg-background/95 backdrop-blur sm:space-y-2">
                 <div class="rounded-2xl border-2 border-sky-200 bg-white/90 p-2 shadow-md backdrop-blur sm:rounded-3xl sm:p-4 landscape:p-2">
                     <div class="mb-1.5 flex min-h-10 flex-wrap items-center gap-1.5 sm:mb-3 sm:min-h-16 sm:gap-2">
                         <span
@@ -648,6 +648,7 @@ onBeforeUnmount(() => {
                 </div>
             </div>
 
+            <div class="min-h-0 flex-1 overflow-y-auto overscroll-y-contain touch-pan-y pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
             <div class="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 landscape:grid-cols-6 landscape:gap-1.5 md:landscape:grid-cols-7">
                 <Link
                     v-if="menu"
@@ -846,11 +847,12 @@ onBeforeUnmount(() => {
                 No words here yet — try another folder.
             </p>
 
-            <p class="flex items-center justify-center gap-2 text-center text-sm font-semibold text-sky-700/80">
+            <p class="hidden items-center justify-center gap-2 px-3 py-4 text-center text-sm font-semibold text-sky-700/80 sm:flex">
                 <BookOpen class="h-4 w-4" />
                 <span v-if="editMode">Edit mode: add, rename, pronounce, reorder, hide, or delete tiles</span>
                 <span v-else>Tip: tap to add · double-tap or press &amp; hold to speak alone</span>
             </p>
+            </div>
         </div>
 
         <BoardWordDialog

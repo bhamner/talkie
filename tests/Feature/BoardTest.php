@@ -54,13 +54,15 @@ test('board document requests safe-area insets for native shells', function () {
         ->assertSee('<meta name="color-scheme" content="light">', false);
 });
 
-test('phrase bar sticks to the top of the scrolling board', function () {
+test('phrase bar stays put while the board tiles scroll', function () {
     $show = file_get_contents(resource_path('js/pages/board/Show.vue'));
     $layout = file_get_contents(resource_path('js/layouts/app/AppFullscreenLayout.vue'));
 
-    expect($show)->toContain('sticky top-0')
+    expect($show)->toContain('shrink-0')
+        ->and($show)->toContain('overflow-y-auto overscroll-y-contain touch-pan-y')
         ->and($show)->not->toContain('top-[4.25rem]')
-        ->and($layout)->toContain('overflow-y-auto')
+        ->and($layout)->not->toContain("pb-[max(5rem,env(safe-area-inset-bottom))]")
+        ->and($layout)->toContain('overflow-hidden')
         ->and($layout)->toContain('pt-[10px]');
 });
 
@@ -69,8 +71,10 @@ test('mobile board chrome hides the footer and keeps phrase controls on one line
     $layout = file_get_contents(resource_path('js/layouts/app/AppFullscreenLayout.vue'));
     $phrases = file_get_contents(resource_path('js/components/PhrasesPanel.vue'));
 
-    expect($layout)->toContain('hidden shrink-0')
-        ->and($layout)->toContain('md:block')
+    expect($layout)->toContain("v-if=\"!user && isSmUp\"")
+        ->and($layout)->toContain('(min-width: 640px)')
+        ->and($layout)->toContain('px-3 py-4')
+        ->and($layout)->not->toContain('md:block')
         ->and($layout)->not->toContain('landscape:hidden')
         ->and($show)->toContain('flex flex-nowrap items-center justify-between')
         ->and($show)->toContain('flex min-w-0 flex-nowrap')
@@ -79,7 +83,9 @@ test('mobile board chrome hides the footer and keeps phrase controls on one line
         ->and($show)->toContain('h-7 min-w-7 shrink-0')
         ->and($phrases)->toContain('h-8 shrink-0')
         ->and($layout)->toContain('hidden sm:inline')
-        ->and($layout)->toContain('aria-label="Personalize"');
+        ->and($layout)->toContain('aria-label="Personalize"')
+        ->and($show)->toContain('hidden items-center justify-center gap-2 px-3 py-4')
+        ->and($show)->toContain('sm:flex');
 });
 
 test('board search highlight query is passed through to the page', function () {

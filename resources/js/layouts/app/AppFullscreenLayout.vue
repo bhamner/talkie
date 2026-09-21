@@ -8,11 +8,13 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
+import { useMediaQuery } from '@vueuse/core';
 import { Settings, Sparkles, UserRound } from 'lucide-vue-next';
 import { computed, nextTick, ref } from 'vue';
 
 const page = usePage<SharedData>();
 const user = computed(() => page.props.auth.user);
+const isSmUp = useMediaQuery('(min-width: 640px)');
 
 const gateOpen = ref(false);
 const menuOpen = ref(false);
@@ -41,7 +43,7 @@ const onGateUnlocked = async () => {
 
 <template>
     <div
-        class="flex h-dvh max-h-dvh min-h-0 max-w-full flex-col overflow-hidden pt-[env(safe-area-inset-top)] pb-[max(5rem,env(safe-area-inset-bottom))]"
+        class="flex h-dvh max-h-dvh min-h-0 max-w-full flex-col overflow-hidden pt-[env(safe-area-inset-top)]"
     >
         <header
             class="z-20 shrink-0 border-b border-sky-200/70 bg-white/80 px-2 py-3 backdrop-blur-md sm:px-3 landscape:py-2"
@@ -94,14 +96,14 @@ const onGateUnlocked = async () => {
         </header>
 
         <main
-            class="flex min-h-0 w-full flex-1 flex-col overflow-x-hidden overflow-y-auto px-2 pt-[10px] pb-3 sm:px-3 landscape:pb-2"
+            class="flex min-h-0 w-full flex-1 flex-col overflow-hidden px-2 pt-[10px] sm:px-3"
         >
             <slot />
         </main>
 
         <footer
-            v-if="!user"
-            class="hidden shrink-0 px-2 pb-4 text-center text-sm font-semibold text-sky-700/80 sm:px-3 md:block"
+            v-if="!user && isSmUp"
+            class="shrink-0 px-3 py-4 text-center text-sm font-semibold text-sky-700/80"
         >
             <span class="inline-flex items-center gap-1">
                 <UserRound class="h-4 w-4" />
