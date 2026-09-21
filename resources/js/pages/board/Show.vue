@@ -570,47 +570,47 @@ onBeforeUnmount(() => {
                 </Button>
             </div>
 
-            <div v-else class="sticky top-0 z-10 space-y-2 bg-background/95 backdrop-blur">
-                <div class="rounded-3xl border-2 border-sky-200 bg-white/90 p-4 shadow-md backdrop-blur landscape:p-2">
-                    <div class="mb-3 flex min-h-16 flex-wrap items-center gap-2">
+            <div v-else class="sticky top-0 z-10 space-y-1 bg-background/95 backdrop-blur sm:space-y-2">
+                <div class="rounded-2xl border-2 border-sky-200 bg-white/90 p-2 shadow-md backdrop-blur sm:rounded-3xl sm:p-4 landscape:p-2">
+                    <div class="mb-1.5 flex min-h-10 flex-wrap items-center gap-1.5 sm:mb-3 sm:min-h-16 sm:gap-2">
                         <span
                             v-for="(token, index) in phrase"
                             :key="`${token.word.id}-${index}-${token.morph ?? 'base'}`"
-                            class="talkie-word rounded-full border-2 px-4 py-2 text-base font-extrabold"
+                            class="talkie-word rounded-full border-2 px-2.5 py-1 text-sm font-extrabold sm:px-4 sm:py-2 sm:text-base"
                         >
                             {{ displayLabel(token) }}
                         </span>
-                        <span v-if="phrase.length === 0" class="inline-flex items-center gap-2 text-base font-semibold text-slate-500">
+                        <span v-if="phrase.length === 0" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 sm:text-base">
                             <Sparkles class="h-4 w-4 text-amber-500" />
                             Tap words to build a fun phrase
                         </span>
                     </div>
 
-                    <div class="flex flex-wrap items-center justify-between gap-2">
-                        <div class="flex flex-wrap gap-2">
+                    <div class="flex flex-nowrap items-center justify-between gap-1 sm:gap-2">
+                        <div class="flex min-w-0 flex-nowrap gap-1 sm:gap-2">
                             <Button
                                 type="button"
-                                class="h-12 rounded-full px-5 text-base font-extrabold shadow-md"
+                                class="h-8 shrink-0 gap-1 rounded-full px-2 text-xs font-extrabold shadow-md sm:h-12 sm:gap-2 sm:px-5 sm:text-base [&_svg]:size-3.5 sm:[&_svg]:size-5"
                                 @click="speakPhrase"
                                 :disabled="phrase.length === 0"
                             >
-                                <Volume2 class="mr-2 h-5 w-5" />
+                                <Volume2 />
                                 Speak
                             </Button>
                             <Button
                                 type="button"
                                 variant="secondary"
-                                class="h-12 rounded-full px-5 text-base font-extrabold"
+                                class="h-8 shrink-0 gap-1 rounded-full px-2 text-xs font-extrabold sm:h-12 sm:gap-2 sm:px-5 sm:text-base [&_svg]:size-3.5 sm:[&_svg]:size-5"
                                 @click="removeLast"
                                 :disabled="phrase.length === 0"
                             >
-                                <Delete class="mr-2 h-5 w-5" />
+                                <Delete />
                                 Oops
                             </Button>
                             <Button
                                 type="button"
                                 variant="outline"
-                                class="h-12 rounded-full px-5 text-base font-extrabold"
+                                class="h-8 shrink-0 gap-1 rounded-full px-2 text-xs font-extrabold sm:h-12 sm:gap-2 sm:px-5 sm:text-base [&_svg]:size-3.5 sm:[&_svg]:size-5"
                                 @click="clearPhrase"
                                 :disabled="phrase.length === 0"
                             >
@@ -628,17 +628,17 @@ onBeforeUnmount(() => {
                 </div>
 
                 <div
-                    class="rounded-3xl border-2 border-slate-200 bg-white/90 px-4 py-2 shadow-md backdrop-blur"
+                    class="rounded-2xl border-2 border-slate-200 bg-white/90 px-2 py-1 shadow-md backdrop-blur sm:rounded-3xl sm:px-4 sm:py-2"
                     aria-label="Modifiers"
                 >
-                    <div class="flex flex-wrap items-center justify-end gap-2">
-                        <span class="text-xs font-bold uppercase tracking-wide text-slate-500">Endings</span>
+                    <div class="flex flex-nowrap items-center justify-end gap-1 sm:gap-2">
+                        <span class="hidden text-xs font-bold uppercase tracking-wide text-slate-500 sm:inline">Endings</span>
                         <Button
                             v-for="tile in MORPH_TILES"
                             :key="tile.kind"
                             type="button"
                             size="sm"
-                            class="h-10 min-w-12 rounded-full border-2 border-slate-300 bg-slate-600 px-4 text-base font-extrabold text-white shadow-sm hover:bg-slate-700"
+                            class="h-7 min-w-7 shrink-0 rounded-full border-2 border-slate-300 bg-slate-600 px-2 text-xs font-extrabold text-white shadow-sm hover:bg-slate-700 sm:h-10 sm:min-w-12 sm:px-4 sm:text-base"
                             :disabled="phrase.length === 0"
                             @click="applyMorph(tile.kind)"
                         >

@@ -92,12 +92,12 @@ const submit = () => {
         <Button
             type="button"
             variant="secondary"
-            class="h-12 rounded-full px-5 text-base font-extrabold"
+            class="h-8 shrink-0 gap-1 rounded-full px-2 text-xs font-extrabold sm:h-12 sm:gap-2 sm:px-5 sm:text-base [&_svg]:size-3.5 sm:[&_svg]:size-5"
             :aria-expanded="open"
             aria-controls="talkie-phrases-panel"
             @click="open = !open"
         >
-            <MessageSquareText class="mr-2 h-5 w-5" />
+            <MessageSquareText />
             Phrases
         </Button>
 

@@ -77,10 +77,14 @@ const onGateUnlocked = async () => {
                         <ParentalGateDialog v-model:open="gateOpen" @unlocked="onGateUnlocked" />
                     </template>
 
-                    <Button v-else class="rounded-full font-extrabold shadow-md" as-child>
-                        <Link :href="route('personalize')">
-                            <Sparkles class="mr-1.5 h-4 w-4" />
-                            Personalize
+                    <Button
+                        v-else
+                        class="h-10 w-10 gap-0 rounded-full p-0 font-extrabold shadow-md sm:h-10 sm:w-auto sm:gap-2 sm:px-4"
+                        as-child
+                    >
+                        <Link :href="route('personalize')" aria-label="Personalize">
+                            <Sparkles class="h-4 w-4" />
+                            <span class="hidden sm:inline">Personalize</span>
                         </Link>
                     </Button>
                 </div>
@@ -95,7 +99,10 @@ const onGateUnlocked = async () => {
             <slot />
         </main>
 
-        <footer v-if="!user" class="shrink-0 px-2 pb-4 text-center text-sm font-semibold text-sky-700/80 sm:px-3 landscape:hidden">
+        <footer
+            v-if="!user"
+            class="hidden shrink-0 px-2 pb-4 text-center text-sm font-semibold text-sky-700/80 sm:px-3 md:block"
+        >
             <span class="inline-flex items-center gap-1">
                 <UserRound class="h-4 w-4" />
                 Tap words to speak — personalize anytime to save your voice
