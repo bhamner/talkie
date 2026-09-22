@@ -144,7 +144,7 @@
                             <h3 class="mt-2 text-xl font-extrabold">Banajee, DiCarlo, and Stricklin</h3>
                             <p class="mt-1 text-sm font-bold text-orange-800">Toddler core words, 2003</p>
                             <p class="mt-3 text-sm font-semibold leading-relaxed text-slate-700">
-                                This study looked specifically at toddlers (24 to 36 months). They tracked the unprompted, natural speech of 50 toddlers across different childcare centers during two distinct daily routines: free play and snack time.It identified a core of 23 words that accounted for 96% of all the words used by the children during their preschool routines.                            </p>
+                                This study looked specifically at toddlers (24 to 36 months). They tracked the unprompted, natural speech of 50 toddlers across different childcare centers during two distinct daily routines: free play and snack time. It identified a core of 23 words that accounted for 96% of all the words used by the children during their preschool routines.
                             </p>
                         </article>
 
