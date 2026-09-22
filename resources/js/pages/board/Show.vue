@@ -100,9 +100,6 @@ const props = defineProps<{
     search_index: SearchIndex;
 }>();
 
-const DOUBLE_TAP_MS = 280;
-const LONG_PRESS_MS = 500;
-
 const phrase = ref<PhraseToken[]>([]);
 const { editMode, exitEditMode } = useBoardEditMode();
 const wordDialogOpen = ref(false);
@@ -315,72 +312,28 @@ const speakWord = (word: BoardWord) => {
     speak(textToSpeak(word));
 };
 
-let pendingAddTimer: ReturnType<typeof setTimeout> | null = null;
-let longPressTimer: ReturnType<typeof setTimeout> | null = null;
-let longPressFired = false;
-let lastTap: { id: number; at: number } | null = null;
+let wordPressActive = false;
 
-const clearPendingAdd = () => {
-    if (pendingAddTimer !== null) {
-        clearTimeout(pendingAddTimer);
-        pendingAddTimer = null;
-    }
-};
-
-const clearLongPress = () => {
-    if (longPressTimer !== null) {
-        clearTimeout(longPressTimer);
-        longPressTimer = null;
-    }
-};
-
-const onWordPointerDown = (word: BoardWord) => {
+const onWordPointerDown = () => {
     if (editMode.value) {
         return;
     }
 
-    longPressFired = false;
-    clearLongPress();
-
-    longPressTimer = setTimeout(() => {
-        longPressFired = true;
-        clearPendingAdd();
-        lastTap = null;
-        speakWord(word);
-    }, LONG_PRESS_MS);
+    wordPressActive = true;
 };
 
-const onWordPointerUp = (word: BoardWord, event: PointerEvent) => {
-    if (editMode.value) {
+const onWordPointerUp = (word: BoardWord) => {
+    if (editMode.value || !wordPressActive) {
         return;
     }
 
-    clearLongPress();
-
-    if (longPressFired) {
-        event.preventDefault();
-        return;
-    }
-
-    const now = Date.now();
-
-    if (lastTap && lastTap.id === word.id && now - lastTap.at < DOUBLE_TAP_MS) {
-        clearPendingAdd();
-        lastTap = null;
-        speakWord(word);
-        return;
-    }
-
-    lastTap = { id: word.id, at: now };
-    clearPendingAdd();
-    pendingAddTimer = setTimeout(() => {
-        addWord(word);
-        pendingAddTimer = null;
-    }, DOUBLE_TAP_MS);
+    wordPressActive = false;
+    addWord(word);
+    speakWord(word);
 };
 
 const onWordPointerCancel = () => {
-    clearLongPress();
+    wordPressActive = false;
 };
 
 const onWordContextMenu = (event: Event) => {
@@ -463,8 +416,6 @@ const moveMenu = (menu: BoardMenu, direction: 'up' | 'down') => {
 };
 
 onBeforeUnmount(() => {
-    clearPendingAdd();
-    clearLongPress();
     document.body.classList.remove('talkie-nested-board');
 });
 </script>
@@ -826,8 +777,8 @@ onBeforeUnmount(() => {
                         class="talkie-word talkie-tile touch-manipulation border-2 transition active:scale-95 select-none"
                         :class="tileSearchClass(isHighlightedWord(word.id, word.label))"
                         :style="wordAccentStyle(word.label)"
-                        @pointerdown="onWordPointerDown(word)"
-                        @pointerup="onWordPointerUp(word, $event)"
+                        @pointerdown="onWordPointerDown"
+                        @pointerup="onWordPointerUp(word)"
                         @pointercancel="onWordPointerCancel"
                         @pointerleave="onWordPointerCancel"
                         @contextmenu="onWordContextMenu"

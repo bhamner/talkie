@@ -108,6 +108,11 @@ html {
         overflow-x: hidden;
     }
 
+    body.welcome-page {
+        background-color: #ffffff;
+        background-image: none;
+    }
+
     body.talkie-nested-board {
         background-image:
             linear-gradient(hsl(199 95% 72% / 0.28), hsl(199 95% 72% / 0.28)),

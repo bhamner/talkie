@@ -51,7 +51,9 @@ test('board document requests safe-area insets for native shells', function () {
     $this->get('/board')
         ->assertOk()
         ->assertSee('viewport-fit=cover', false)
-        ->assertSee('<meta name="color-scheme" content="light">', false);
+        ->assertSee('<meta name="color-scheme" content="light">', false)
+        ->assertSee('apple-touch-icon.png', false)
+        ->assertSee('favicon.ico', false);
 });
 
 test('phrase bar stays put while the board tiles scroll', function () {
@@ -61,7 +63,7 @@ test('phrase bar stays put while the board tiles scroll', function () {
     expect($show)->toContain('shrink-0')
         ->and($show)->toContain('overflow-y-auto overscroll-y-contain touch-pan-y')
         ->and($show)->not->toContain('top-[4.25rem]')
-        ->and($layout)->not->toContain("pb-[max(5rem,env(safe-area-inset-bottom))]")
+        ->and($layout)->not->toContain('pb-[max(5rem,env(safe-area-inset-bottom))]')
         ->and($layout)->toContain('overflow-hidden')
         ->and($layout)->toContain('pt-[10px]');
 });
@@ -71,7 +73,7 @@ test('mobile board chrome hides the footer and keeps phrase controls on one line
     $layout = file_get_contents(resource_path('js/layouts/app/AppFullscreenLayout.vue'));
     $phrases = file_get_contents(resource_path('js/components/PhrasesPanel.vue'));
 
-    expect($layout)->toContain("v-if=\"!user && isSmUp\"")
+    expect($layout)->toContain('v-if="!user && isSmUp"')
         ->and($layout)->toContain('(min-width: 640px)')
         ->and($layout)->toContain('px-3 py-4')
         ->and($layout)->not->toContain('md:block')

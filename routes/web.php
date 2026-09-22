@@ -8,11 +8,12 @@ use App\Http\Controllers\Onboarding\GateController;
 use App\Http\Controllers\Onboarding\NameController;
 use App\Http\Controllers\Onboarding\VoiceController as OnboardingVoiceController;
 use App\Http\Controllers\PhraseController;
+use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\WordController;
 use App\Http\Middleware\EnsureOnboardingComplete;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/board')->name('home');
+Route::get('/', WelcomeController::class)->name('home');
 
 Route::view('privacy', 'legal.show', ['title' => 'Privacy Policy', 'policy' => 'privacy'])->name('privacy');
 Route::view('cookies', 'legal.show', ['title' => 'Cookie Policy', 'policy' => 'cookies'])->name('cookies');
