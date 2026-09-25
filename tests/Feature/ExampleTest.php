@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use App\Support\WelcomePage;
 
 test('the welcome page is the public home page', function () {
@@ -31,4 +32,10 @@ test('the welcome page is the public home page', function () {
         ->and(public_path('apple-touch-icon.png'))->toBeReadableFile()
         ->and(public_path('icons/icon-192.png'))->toBeReadableFile()
         ->and(public_path('icons/icon-512.png'))->toBeReadableFile();
+});
+
+test('signed in people opening the welcome page are sent to the board', function () {
+    $this->actingAs(User::factory()->create());
+
+    $this->get('/')->assertRedirect(route('board'));
 });
