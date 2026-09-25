@@ -47,13 +47,7 @@
             <div class="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-3">
                 <a href="{{ route('home') }}" class="flex shrink-0 items-center gap-2" aria-label="Talkie home">
                     <span class="flex size-11 items-center justify-center rounded-2xl bg-white shadow-sm ring-2 ring-sky-200">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 396.02 396.32" class="size-8" aria-hidden="true">
-                            <path d="M176.75,396.32c-.02-.06-.04-.12-.06-.18l19.82-.16c118.83.83,211.59-102.81,198.24-219.81.19.06.38.13.58.2-1.74-8.79-2.51-17.8-5.17-26.39-.02,0-.04-.01-.06-.02-.07-.29-.16-.57-.23-.86-.19-.59-.38-1.18-.6-1.76-.21-.58-.3-1.12-.31-1.62-16.68-60.68-61.41-109.96-119.71-132.43C184.53-19.35,89.94,9.81,37.52,82.27c-52.71,72.86-49.65,173.24,8.72,242.78L3.58,375.41c-3.46,4.09-4.76,8.9-2.31,13.88,1.77,3.59,5.76,6.71,10.94,6.72l139.41.05c.02.08.05.15.07.23,8.28-1.23,16.71-.88,25.07.04ZM38.08,371.97l32.9-39.07c3.78-4.49,4.42-11.4.43-15.62-62.33-66.13-62.85-168.62-2.75-235.43C133.66,9.58,244.67,4.43,315.95,70.16c71.09,65.55,75.44,176.86,8.18,247.59-32.3,33.97-77.14,54.19-125.11,54.2l-160.94.02Z" fill="#f97316"/>
-                            <path d="M300.08,234.55c-.45,56.99-46.97,101.71-102.48,101.45-55.64-.26-101.55-45.54-101.47-102.12,0-6.59,5.19-11.87,12.09-11.87h179.74c6.94,0,12.18,5.16,12.12,12.54ZM275.04,246.03H120.98c6.11,38.46,39.3,66.2,77.57,65.98,37.66-.22,70.65-27.85,76.48-65.98Z" fill="#0369a1"/>
-                            <path d="M149.3,181.22c-9.82-9.58-24.61-9.61-34.22-.21-5.03,4.91-12.52,4.41-16.8.1-5.39-5.42-4.62-13.01.84-18.08,19.23-17.85,49.05-17.43,67.34,1.65,4.46,4.65,3.87,11.91-.58,16.38-4.01,4.03-11.42,5.2-16.59.16Z" fill="#0369a1"/>
-                            <path d="M281.89,181.61c-10.03-9.73-24.9-10.33-34.83-.58-4.98,4.89-12.5,4.41-16.8.07-5.08-5.12-4.77-12.6.36-17.54,18.78-18.09,48.14-18.09,66.91.04,4.88,4.71,5.43,11.76.8,17-3.53,4-11.26,6.02-16.43,1Z" fill="#0369a1"/>
-                            <path d="M275.04,246.03c-5.84,38.13-38.82,65.76-76.48,65.98-38.27.23-71.46-27.52-77.57-65.99h154.06Z" fill="#fff"/>
-                        </svg>
+                        <img src="{{ asset('images/talkie-logo.svg') }}" alt="" class="size-8" />
                     </span>
                     <span class="hidden items-baseline leading-none lg:flex">
                         <span class="text-xl font-extrabold tracking-tight text-sky-700">Talkie</span>
@@ -73,14 +67,24 @@
         </header>
 
         <main>
-            <section class="bg-sky-50">
-                <div class="mx-auto grid w-full max-w-5xl items-center gap-6 px-4 py-12 sm:py-16 lg:grid-cols-2 lg:gap-10">
-                    <div class="flex flex-col gap-5">
+            <section class="relative isolate overflow-hidden bg-sky-50">
+                <img
+                    src="{{ $imageUrl }}"
+                    alt="{{ $imageAlt }}"
+                    width="1920"
+                    height="1080"
+                    fetchpriority="high"
+                    decoding="async"
+                    class="absolute inset-y-0 right-0 h-full w-auto max-w-none"
+                />
+                <div class="absolute inset-0 bg-[linear-gradient(to_right,#f0f9ff_0%,#f0f9ff_62%,rgb(240_249_255/0.2)_100%)] lg:bg-[linear-gradient(to_right,#f0f9ff_0%,#f0f9ff_34%,transparent_68%)]" aria-hidden="true"></div>
+                <div class="relative mx-auto flex min-h-[28rem] w-full max-w-5xl items-center px-4 py-16 sm:min-h-[32rem] sm:py-20">
+                    <div class="flex max-w-xl flex-col gap-5">
                         <p class="text-sm font-extrabold uppercase tracking-wide text-orange-500">Talkie.kids</p>
-                        <h1 class="max-w-3xl text-4xl font-extrabold tracking-tight text-slate-800 sm:text-5xl">
+                        <h1 class="text-4xl font-extrabold tracking-tight text-slate-800 sm:text-5xl">
                             A free text to speech board for children who are learning to communicate
                         </h1>
-                        <p class="max-w-3xl text-lg font-semibold leading-relaxed text-slate-600">
+                        <p class="text-lg font-semibold leading-relaxed text-slate-600">
                             Tap a picture and Talkie says the word out loud using your device's text to speech voice. No account required.
                         </p>
                         <div class="flex flex-wrap gap-3">
@@ -91,15 +95,6 @@
                             <a href="#word-lists" class="inline-flex h-12 items-center justify-center rounded-full border-2 border-sky-200 bg-white px-6 text-base font-extrabold text-slate-800 shadow-sm hover:bg-sky-50">More info</a>
                         </div>
                     </div>
-                    <img
-                        src="{{ $imageUrl }}"
-                        alt="{{ $imageAlt }}"
-                        width="1920"
-                        height="1080"
-                        fetchpriority="high"
-                        decoding="async"
-                        class="aspect-video w-full rounded-3xl border-2 border-sky-200 object-cover shadow-sm"
-                    />
                 </div>
             </section>
 

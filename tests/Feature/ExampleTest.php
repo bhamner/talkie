@@ -7,6 +7,7 @@ test('the welcome page is the public home page', function () {
         ->assertSuccessful()
         ->assertViewIs('welcome')
         ->assertViewHas('faqs', WelcomePage::faqs())
+        ->assertSee('images/talkie-logo.svg', false)
         ->assertSee('<h1', false)
         ->assertDontSee('data-page', false)
         ->assertSee(WelcomePage::title(), false)
