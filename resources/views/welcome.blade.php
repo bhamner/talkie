@@ -131,7 +131,8 @@
                 <div class="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-12 sm:py-16">
                     <h2 id="word-lists-heading" class="text-2xl font-extrabold tracking-tight sm:text-3xl">Starting with the words children actually use</h2>
                     <p class="max-w-3xl text-base font-semibold leading-relaxed text-slate-600">
-                        The board vocabulary starts from two well-known studies, with help from licensed speech-language pathologists.
+                        The board vocabulary starts with words from two well-known studies, 
+                        and is built from advisory sessions with licensed children's speech-language pathologists.
                     </p>
 
                     <div class="grid gap-3 lg:grid-cols-2">
@@ -164,7 +165,7 @@
                 <div class="mx-auto w-full max-w-5xl px-4 py-12 text-center sm:py-16">
                     <h2 class="text-2xl font-extrabold">Start with the words already on the board</h2>
                     <p class="mx-auto mt-2 max-w-xl text-sm font-semibold text-orange-50">
-                        Open Talkie and tap a word. You can personalize it later.
+                        Open Talkie and tap a word. Personalize it to make it your own.
                     </p>
                     <a href="{{ route('board') }}" class="mt-4 inline-flex h-12 items-center justify-center rounded-full bg-white px-6 text-base font-extrabold text-slate-800 shadow-md hover:bg-orange-50">Open the board</a>
                 </div>
