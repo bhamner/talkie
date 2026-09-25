@@ -75,7 +75,7 @@
                     height="1080"
                     fetchpriority="high"
                     decoding="async"
-                    class="absolute inset-y-0 right-0 h-full w-auto max-w-none"
+                    class="absolute inset-y-0 right-0 h-full w-auto max-w-none [-webkit-mask-image:linear-gradient(to_right,transparent,black_36%)] [mask-image:linear-gradient(to_right,transparent,black_36%)]"
                 />
                 <div class="absolute inset-0 bg-[linear-gradient(to_right,#f0f9ff_0%,#f0f9ff_62%,rgb(240_249_255/0.2)_100%)] lg:bg-[linear-gradient(to_right,#f0f9ff_0%,#f0f9ff_34%,transparent_68%)]" aria-hidden="true"></div>
                 <div class="relative mx-auto flex min-h-[28rem] w-full max-w-5xl items-center px-4 py-16 sm:min-h-[32rem] sm:py-20">
