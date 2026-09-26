@@ -3,10 +3,28 @@ import autoprefixer from 'autoprefixer';
 import laravel from 'laravel-vite-plugin';
 import path from 'path';
 import tailwindcss from 'tailwindcss';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
+import { patchPiperPhonemizerSource } from './resources/js/lib/piperPhonemizerPatch';
+
+function piperPhonemizerPlugin(): Plugin {
+    return {
+        name: 'talkie-piper-phonemizer',
+        enforce: 'pre',
+        transform(code, id) {
+            const file = id.split('?')[0];
+
+            if (!file.includes('/@mintplex-labs/piper-tts-web/') || !file.endsWith('/piper-tts-web.js')) {
+                return null;
+            }
+
+            return patchPiperPhonemizerSource(code);
+        },
+    };
+}
 
 export default defineConfig({
     plugins: [
+        piperPhonemizerPlugin(),
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.ts'],
             refresh: true,
@@ -27,7 +45,7 @@ export default defineConfig({
         },
     },
     optimizeDeps: {
-        exclude: ['onnxruntime-web'],
+        exclude: ['onnxruntime-web', '@mintplex-labs/piper-tts-web'],
     },
     css: {
         postcss: {
